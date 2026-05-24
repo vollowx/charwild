@@ -1,0 +1,30 @@
+# This Makefile runs under MSYS2, with the following packages:
+# - make
+# - mingw-w64-ucrt-x86_64-gcc
+# - mingw-w64-ucrt-x86_64-ncurses
+
+CC=gcc
+# Consider use <ncurses/ncurses.h> or <curses.h> in code
+# Consider use PDCurses for Windows
+CFLAGS=-Wall -Wextra -Wpedantic -Wno-unused-parameter -Isrc -Ithirdparty -I/ucrt64/include/ncurses -DNCURSES_STATIC
+LDFLAGS=-lncursesw -lmenuw
+
+TARGET=build/charwild.exe
+
+SRC=$(shell find src -name '*.c') thirdparty/simplexnoise1234.c
+OBJ=$(patsubst %.c,build/%.o,$(SRC))
+
+.PHONY: all clean compdb
+
+all: $(TARGET)
+
+$(TARGET): $(OBJ)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) -o $@
+
+build/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -rf build
