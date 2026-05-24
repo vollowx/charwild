@@ -26,10 +26,12 @@
 
 ///
 
-@player        0   100 0 \@ red   none You!
-@animal        1    20 0 Uo black none Cow
-@animal        2    20 0 qp red   none Pig
-@animal        3    20 0 wm white none Sheep
+@player        0   100 0 \@ red    none You!
+@animal        1    20 0 Uo black  none Cow
+@animal        2    20 0 qp red    none Pig
+@animal        3    20 0 wm white  none Sheep
+@animal        4    25 0 Wm white  none Goat
+@animal        5    15 0 ^C yellow none Chicken
 
 ///
 

@@ -82,10 +82,8 @@ SaveResult save_save(const Save *self, int slot) {
         }
     }
 
-    da_foreach(Entity *, ent_it, &self->world->entities) {
-        Entity *ent = *ent_it;
-        if (!ent || !ent->def)
-            continue;
+    da_foreach(Entity, ent, &self->world->entities) {
+        assert(ent && ent->def);
 
         fprintf(fp, "@entity %u %zu %zu %d %s\n", ent->def->id, ent->x, ent->y,
                 ent->health, ent->name[0] ? ent->name : "0");
@@ -193,43 +191,43 @@ SaveResult save_load(Save *self, int slot, Cw *ctx) {
                        &hp, name) != 5)
                 do_defer_and_return(SAVE_ERR_READ);
 
-            cur_ent = calloc(1, sizeof(Entity));
-            if (!cur_ent)
-                do_defer_and_return(SAVE_ERR_READ);
+            Entity new_ent = {0};
+            new_ent.def = entity_def_lookup(ctx->entity_defs, def_id);
+            new_ent.x = x;
+            new_ent.y = y;
+            new_ent.health = hp;
 
-            cur_ent->def = entity_def_lookup(ctx->entity_defs, def_id);
-            cur_ent->x = x;
-            cur_ent->y = y;
-            cur_ent->health = hp;
-
-            if (!cur_ent->def)
+            if (!new_ent.def)
                 do_defer_and_return(SAVE_ERR_READ);
             if (strcmp(name, "0") != 0)
-                copy_name(cur_ent->name, sizeof(cur_ent->name), name);
+                copy_name(new_ent.name, sizeof(new_ent.name), name);
 
-            da_append(&self->world->entities, cur_ent);
+            da_append(&self->world->entities, new_ent);
+            cur_ent = &self->world->entities.items[self->world->entities.count - 1];
         } else if (strncmp(line, "+ ", 2) == 0) {
-            unsigned int def_id = 0;
-            int qty = 0, dur = 0;
-            int n;
-
-            if (!cur_ent)
-                do_defer_and_return(SAVE_ERR_READ);
-
-            n = sscanf(line, "+ %u %d %d", &def_id, &qty, &dur);
-            if (n < 2)
-                do_defer_and_return(SAVE_ERR_READ);
-
-            ItemStack item = {0};
-            item.def = item_def_lookup(ctx->item_defs, def_id);
-            item.quantity = qty;
-            if (n >= 3)
-                item.durability = dur;
-
-            if (!item.def)
-                do_defer_and_return(SAVE_ERR_READ);
-
-            da_append(&cur_ent->inventory, item);
+            // TODO: To be redone
+            //
+            // unsigned int def_id = 0;
+            // int qty = 0, dur = 0;
+            // int n;
+            //
+            // if (!cur_ent)
+            //     do_defer_and_return(SAVE_ERR_READ);
+            //
+            // n = sscanf(line, "+ %u %d %d", &def_id, &qty, &dur);
+            // if (n < 2)
+            //     do_defer_and_return(SAVE_ERR_READ);
+            //
+            // ItemStack item = {0};
+            // item.def = item_def_lookup(ctx->item_defs, def_id);
+            // item.quantity = qty;
+            // if (n >= 3)
+            //     item.durability = dur;
+            //
+            // if (!item.def)
+            //     do_defer_and_return(SAVE_ERR_READ);
+            //
+            // da_append(&cur_ent->inventory, item);
         } else {
             do_defer_and_return(SAVE_ERR_READ);
         }
@@ -242,9 +240,7 @@ SaveResult save_load(Save *self, int slot, Cw *ctx) {
 
     self->world->player = NULL;
     for (size_t i = 0; i < self->world->entities.count; ++i) {
-        Entity *ent = self->world->entities.items[i];
-        if (!ent)
-            continue;
+        Entity *ent = &self->world->entities.items[i];
         if (ent->x >= self->world->map->w || ent->y >= self->world->map->h)
             do_defer_and_return(SAVE_ERR_READ);
 

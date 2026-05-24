@@ -129,26 +129,28 @@ void world_init(World *w, Cw *ctx) {
     w->entities.count = 0;
     w->entities.capacity = 0;
 
-    Entity *player = malloc(sizeof(Entity));
-    memset(player, 0, sizeof(Entity));
+    Entity player = {
+        .def = &ctx->entity_defs.items[0],
+        .health = 100,
+    };
+    strncpy(player.name, "Guy", sizeof(player.name) - 1);
 
-    player->def = &ctx->entity_defs.items[0];
-    player->health = 100;
-    strncpy(player->name, "Guy", sizeof(player->name) - 1);
-
-    player->inventory.count = 0;
-    player->inventory.capacity = 8;
-    player->inventory.items =
-        malloc(sizeof(ItemStack) * player->inventory.capacity);
+    player.inventory.count = 0;
+    player.inventory.capacity = 8;
+    player.inventory.items =
+        malloc(sizeof(ItemStack) * player.inventory.capacity);
 
     da_append(&w->entities, player);
-    w->player = player;
+    w->player = &player;
 
     srand((unsigned int)time(NULL));
     w->seed = ((uint32_t)rand() << 16) | (uint32_t)rand();
 
     size_t py = 1024, px = 1024, y_offset = 0;
     world_gen_area(w, py - 256, px - 256, py + 256, px + 256, ctx);
+
+    // TODO: Review: relink player pointer after potential realloc from world_gen_area
+    w->player = &w->entities.items[0];
 
     // TODO: Fails in a rather small possibility
     while (w->map->cells[py + y_offset][px].elevation != ELEV_GROUND &&
@@ -157,9 +159,9 @@ void world_init(World *w, Cw *ctx) {
     }
     py += y_offset;
 
-    player->y = py;
-    player->x = px;
-    w->map->cells[player->y][player->x].entity = player;
+    w->player->y = py;
+    w->player->x = px;
+    w->map->cells[w->player->y][w->player->x].entity = w->player;
 }
 
 void free_world(World *w) {
@@ -171,15 +173,9 @@ void free_world(World *w) {
         w->map = NULL;
     }
 
-    da_foreach(Entity *, it, &w->entities) {
-        Entity *ent = *it;
-        if (ent) {
-            if (ent->inventory.items) {
-                free(ent->inventory.items);
-            }
-            free(ent);
-        }
-    }
+    da_foreach(Entity, it, &w->entities)
+        if (it->inventory.items)
+            free(it->inventory.items);
 
     if (w->entities.items) {
         free(w->entities.items);
@@ -230,20 +226,21 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ct
                         (cell->elevation == ELEV_HILL) ? 7U : 4U;
 
                     if ((res_h % 100) < spawn_threshold) {
-                        Entity *res = calloc(1, sizeof(Entity));
-                        if (res) {
-                            res->x = x;
-                            res->y = y;
+                        Entity animal = {
+                            .x = x,
+                            .y = y,
+                        };
 
-                            int pick = (res_h >> 8) % 3 + 2;
-                            // &ctx->entity_defs.items[0]
-                            res->def = &ctx->entity_defs.items[pick];
-                            strncpy(res->name, ctx->entity_defs.items[pick].name,
-                                    sizeof(res->name) - 1);
+                        int pick = (res_h >> 8) % 3 + 2;
+                        animal.def = &ctx->entity_defs.items[pick];
+                        strncpy(animal.name, ctx->entity_defs.items[pick].name,
+                                sizeof(animal.name) - 1);
 
-                            cell->entity = res;
-                            da_append(&w->entities, res);
-                        }
+                        da_append(&w->entities, animal);
+                        // Assign after append; NOTE: cell->entity may be stale
+                        // if da_append reallocates again later. Safe here only
+                        // because we immediately move to the next cell.
+                        cell->entity = &w->entities.items[w->entities.count - 1];
                     }
                 }
             }

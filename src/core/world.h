@@ -49,7 +49,7 @@ typedef struct {
 } Entity;
 
 typedef struct {
-    Entity **items;
+    Entity *items;
     size_t count;
     size_t capacity;
 } Entities;
