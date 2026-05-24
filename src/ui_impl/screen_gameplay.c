@@ -44,7 +44,7 @@ void gameplay_init(CwTui *ctx) {
         }
     }
 
-    if (save_load(&current_save, ctx->core->cur_slot) != SAVE_OK) {
+    if (save_load(&current_save, ctx->core->cur_slot, ctx->core) != SAVE_OK) {
         ctx->next_state = TUI_STATE_MAIN_MENU;
         return;
     }
@@ -53,7 +53,7 @@ void gameplay_init(CwTui *ctx) {
     keypad(g_win, TRUE);
 }
 
-void gameplay_deinit() {
+void gameplay_deinit(void) {
     werase(g_win);
     wnoutrefresh(g_win);
     if (g_win) {
@@ -225,7 +225,6 @@ void gameplay_frame(CwTui *ctx, double dt) {
                 ++fcp_get_calls;
                 ++fcp_get_calls_in_one_render;
             } else if (cell->object_id) {
-                // const ObjectDef *def = object_get_def(cell->object_id);
                 ObjectDef *def = object_def_lookup(ctx->core->object_defs, cell->object_id);
                 symbol[0] = def->symbol[0];
                 symbol[1] = def->symbol[1];

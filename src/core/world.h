@@ -7,6 +7,7 @@
 
 #include <ncurses.h>
 
+#include "core/context.h"
 #include "world_defs.h"
 
 // Order:
@@ -27,7 +28,7 @@ typedef enum {
 } Elevation;
 
 typedef struct {
-    const ItemDef *def;
+    ItemDef *def;
     int quantity;
     int durability; // Only used if def->type == ITEM_EQUIPMENT
 } ItemStack;
@@ -39,7 +40,7 @@ typedef struct {
 } ItemStacks;
 
 typedef struct {
-    const EntityDef *def;
+    EntityDef *def;
     char name[32];
     int health;
     size_t x, y;
@@ -73,10 +74,6 @@ typedef struct {
     Entities entities;
 } World;
 
-const ItemDef *item_get_def(int id);
-const EntityDef *entity_get_def(int id);
-const ObjectDef *object_get_def(int id);
-
 bool entity_move(Entity *e, Map *map, int dx, int dy);
 bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
                          int dy);
@@ -85,8 +82,8 @@ Map *new_map(size_t height, size_t width);
 void free_map(Map *map);
 
 void free_world(World *);
-void world_init(World *);
-void world_gen_area(World *, size_t y1, size_t x1, size_t y2, size_t x2);
+void world_init(World *, Cw *ctx);
+void world_gen_area(World *, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ctx);
 bool world_tick(World *, double dt);
 bool world_tick_animals(World *, double dt);
 bool world_tick_world(World *, double dt);

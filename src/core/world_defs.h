@@ -79,6 +79,8 @@ bool definitions_load(
     ObjectDefs *object_defs
 );
 
+ItemDef     *item_def_lookup(  ItemDefs defs, uint16_t id);
+EntityDef *entity_def_lookup(EntityDefs defs, uint16_t id);
 ObjectDef *object_def_lookup(ObjectDefs defs, uint16_t id);
 
 #endif // WORLD_DEFS_H

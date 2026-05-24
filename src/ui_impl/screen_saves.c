@@ -115,7 +115,7 @@ void saves_input(CwTui *ctx) {
             ctx->next_state = TUI_STATE_GAMEPLAY;
         } else {
             World world = {0};
-            world_init(&world);
+            world_init(&world, ctx->core);
             Save save = {0};
             save.world = &world;
             save_init(&save);
@@ -155,7 +155,7 @@ void saves_input(CwTui *ctx) {
             World game = {0};
             Save save = {0};
             save.world = &game;
-            if (save_load(&save, slot) == SAVE_OK) {
+            if (save_load(&save, slot, ctx->core) == SAVE_OK) {
                 strcpy(save.header.player_name, new_name);
                 strcpy(game.player->name, new_name);
                 if (save_save(&save, slot) == SAVE_OK) {

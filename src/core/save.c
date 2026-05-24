@@ -3,7 +3,9 @@
 #include <string.h>
 #include <time.h>
 
+#include "core/context.h"
 #include "core/helpers.h"
+#include "core/world_defs.h"
 #include "core/save.h"
 
 static char *get_save_path(int slot) {
@@ -104,7 +106,7 @@ defer:
     return ret;
 }
 
-SaveResult save_load(Save *self, int slot) {
+SaveResult save_load(Save *self, int slot, Cw *ctx) {
     SaveResult ret = SAVE_OK;
     char *path = get_save_path(slot);
     FILE *fp = NULL;
@@ -195,7 +197,7 @@ SaveResult save_load(Save *self, int slot) {
             if (!cur_ent)
                 do_defer_and_return(SAVE_ERR_READ);
 
-            cur_ent->def = entity_get_def((int)def_id);
+            cur_ent->def = entity_def_lookup(ctx->entity_defs, def_id);
             cur_ent->x = x;
             cur_ent->y = y;
             cur_ent->health = hp;
@@ -219,7 +221,7 @@ SaveResult save_load(Save *self, int slot) {
                 do_defer_and_return(SAVE_ERR_READ);
 
             ItemStack item = {0};
-            item.def = item_get_def((int)def_id);
+            item.def = item_def_lookup(ctx->item_defs, def_id);
             item.quantity = qty;
             if (n >= 3)
                 item.durability = dur;

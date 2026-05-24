@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-#include "world.h"
+#include "core/context.h"
+#include "core/world.h"
 
 #define SAVE_VERSION 1
 #define MAX_N_SLOTS 3
@@ -34,7 +35,7 @@ typedef struct {
     bool exists;
 } SavePreview;
 
-SaveResult save_load(Save *save, int slot);
+SaveResult save_load(Save *save, int slot, Cw *ctx);
 SaveResult save_save(const Save *save, int slot);
 SaveResult save_delete(int slot);
 void save_init(Save *save);

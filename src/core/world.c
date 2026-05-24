@@ -3,64 +3,9 @@
 #include <ncurses.h>
 #include <simplexnoise1234.h>
 
+#include "core/context.h"
 #include "core/helpers.h"
 #include "core/world.h"
-
-// clang-format off
-ItemDef ITEM_DB[] = {
-    {.id = 0,     .type = ITEM_RESOURCE,   .name = "Copper Ore", .symbol = {'c', 'O'},   .fg = COLOR_YELLOW, .bg = -1,          .max_stack = 64},
-    {.id = 1,     .type = ITEM_RESOURCE,   .name = "Iron Ore",   .symbol = {'o', 'O'},   .fg = COLOR_WHITE,  .bg = -1,          .max_stack = 64},
-    {.id = 2,     .type = ITEM_RESOURCE,   .name = "Gold Ore",   .symbol = {'o', 'O'},   .fg = COLOR_YELLOW, .bg = -1,          .max_stack = 64},
-    {.id = 10000, .type = ITEM_PLACEABLE,  .name = "Brick",      .symbol = {'#', '#'},   .fg = COLOR_WHITE,  .bg = COLOR_RED,   .max_stack = 64},
-    {.id = 20000, .type = ITEM_CONSUMABLE, .name = "Apple",      .symbol = {'a', 'O'},   .fg = COLOR_RED,    .bg = -1,          .max_stack = 24},
-    {.id = 20001, .type = ITEM_CONSUMABLE, .name = "Orange",     .symbol = {'(', ')'},   .fg = COLOR_YELLOW, .bg = -1,          .max_stack = 24},
-    {.id = 20002, .type = ITEM_CONSUMABLE, .name = "Berry",      .symbol = {'\\', 'o'},  .fg = COLOR_YELLOW, .bg = -1,          .max_stack = 24},
-    {.id = 30000, .type = ITEM_EQUIPMENT,  .name = "Copper Axe", .symbol = {'A', '\\'},  .fg = COLOR_YELLOW, .bg = -1},
-    {.id = 30001, .type = ITEM_EQUIPMENT,  .name = "Iron Axe",   .symbol = {'A', '\\'},  .fg = COLOR_WHITE,  .bg = -1},
-    {.id = 30002, .type = ITEM_EQUIPMENT,  .name = "Gold Axe",   .symbol = {'A', '\\'},  .fg = COLOR_YELLOW, .bg = -1},
-};
-
-EntityDef ENTITY_DB[] = {
-    {.id = 0,     .type = ENTITY_PLAYER,   .name = "You!",          .max_health = 100, .is_passable = false, .symbol = {'\\', '@'}, .fg = COLOR_RED,   .bg = -1, .attr = A_BOLD},
-    {.id = 1,     .type = ENTITY_ANIMAL,   .name = "Cow",           .max_health = 20,  .is_passable = false, .symbol = {'U', 'o'},  .fg = COLOR_BLACK, .bg = -1},
-    {.id = 2,     .type = ENTITY_ANIMAL,   .name = "Pig",           .max_health = 20,  .is_passable = false, .symbol = {'q', 'p'},  .fg = COLOR_RED,   .bg = -1},
-    {.id = 3,     .type = ENTITY_ANIMAL,   .name = "Sheep",         .max_health = 20,  .is_passable = false, .symbol = {'w', 'm'},  .fg = COLOR_WHITE, .bg = -1},
-};
-
-ObjectDef OBJECT_DB[] = {
-    // In this case 0 is the default object_id for cells
-    // TASK(20260227-172726): Add reverse option to get the real black color from the terminal
-    {.id = 1,     .name = "Wood Bridge",   .max_health = 1,  .is_passable = true , .symbol = {'#', '#'}, .fg = COLOR_BLACK, .bg = COLOR_YELLOW},
-    {.id = 2,     .name = "Stone Boulder", .max_health = 5,  .is_passable = false, .symbol = {'O', 'O'}, .fg = COLOR_BLACK, .bg = COLOR_WHITE},
-    {.id = 3,     .name = "Furnace",       .max_health = 10, .is_passable = false, .symbol = {'&', '&'}, .fg = COLOR_BLACK, .bg = COLOR_WHITE},
-    {.id = 10000, .name = "Brick",         .max_health = 15, .is_passable = false, .symbol = {'#', '#'}, .fg = COLOR_BLACK, .bg = COLOR_RED},
-};
-// clang-format on
-
-const ItemDef *item_get_def(int id) {
-    for (size_t i = 0; i < sizeof(ITEM_DB) / sizeof(ItemDef); ++i) {
-        if (ITEM_DB[i].id == id)
-            return &ITEM_DB[i];
-    }
-    return NULL;
-}
-
-const EntityDef *entity_get_def(int id) {
-    for (size_t i = 0; i < sizeof(ENTITY_DB) / sizeof(EntityDef); ++i) {
-        if (ENTITY_DB[i].id == id)
-            return &ENTITY_DB[i];
-    }
-    return NULL;
-}
-
-// TODO: Remove as an unused function
-const ObjectDef *object_get_def(int id) {
-    for (size_t i = 0; i < sizeof(OBJECT_DB) / sizeof(ObjectDef); ++i) {
-        if (OBJECT_DB[i].id == id)
-            return &OBJECT_DB[i];
-    }
-    return NULL;
-}
 
 bool entity_move(Entity *e, Map *map, int dx, int dy) {
     if (!e || !map)
@@ -177,7 +122,7 @@ void free_map(Map *map) {
 }
 
 // TASK(20260223-173936): Chunk-ize game both in struct and file
-void world_init(World *w) {
+void world_init(World *w, Cw *ctx) {
     w->map = new_map(2048, 2048);
 
     w->entities.items = NULL;
@@ -187,7 +132,7 @@ void world_init(World *w) {
     Entity *player = malloc(sizeof(Entity));
     memset(player, 0, sizeof(Entity));
 
-    player->def = &ENTITY_DB[0];
+    player->def = &ctx->entity_defs.items[0];
     player->health = 100;
     strncpy(player->name, "Guy", sizeof(player->name) - 1);
 
@@ -203,7 +148,7 @@ void world_init(World *w) {
     w->seed = ((uint32_t)rand() << 16) | (uint32_t)rand();
 
     size_t py = 1024, px = 1024, y_offset = 0;
-    world_gen_area(w, py - 256, px - 256, py + 256, px + 256);
+    world_gen_area(w, py - 256, px - 256, py + 256, px + 256, ctx);
 
     // TODO: Fails in a rather small possibility
     while (w->map->cells[py + y_offset][px].elevation != ELEV_GROUND &&
@@ -246,7 +191,7 @@ void free_world(World *w) {
     w->player = NULL;
 }
 
-void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2) {
+void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ctx) {
     if (!w || !w->map)
         return;
     Map *map = w->map;
@@ -291,8 +236,9 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2) {
                             res->y = y;
 
                             int pick = (res_h >> 8) % 3 + 2;
-                            res->def = &ENTITY_DB[pick];
-                            strncpy(res->name, ENTITY_DB[pick].name,
+                            // &ctx->entity_defs.items[0]
+                            res->def = &ctx->entity_defs.items[pick];
+                            strncpy(res->name, ctx->entity_defs.items[pick].name,
                                     sizeof(res->name) - 1);
 
                             cell->entity = res;
@@ -306,9 +252,6 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2) {
 }
 
 bool world_tick(World *w, double dt) {
-    UNUSED(w);
-    UNUSED(dt);
-
     bool updated = false;
 
     // What a typhoon

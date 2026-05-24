@@ -191,6 +191,20 @@ defer:
     return ret;
 }
 
+ItemDef *item_def_lookup(ItemDefs defs, uint16_t id) {
+    da_foreach(ItemDef, def, &defs)
+        if (def->id == id)
+            return def;
+    return NULL;
+}
+
+EntityDef *entity_def_lookup(EntityDefs defs, uint16_t id) {
+    da_foreach(EntityDef, def, &defs)
+        if (def->id == id)
+            return def;
+    return NULL;
+}
+
 ObjectDef *object_def_lookup(ObjectDefs defs, uint16_t id) {
     da_foreach(ObjectDef, def, &defs)
         if (def->id == id)

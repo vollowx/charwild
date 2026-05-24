@@ -12,9 +12,30 @@
 // @animal     id max_health passable symbol fg bg name
 // @object     id max_health passable symbol fg bg name
 
-@resource   0 64 cO yellow none Copper Ore
+@resource   0       64 cO yellow none Copper Ore
 
+@consumable 20000   24 aO red    none Apple
+@consumable 20001   24 () yellow none Orange
+@consumable 20002   24 \o yellow none Berry
+
+@equipment  30000    0 A\ yellow none Copper Axe
+@equipment  30001    0 A\ white  none Iron Axe
+@equipment  30002    0 A\ yellow none Gold Axe
+
+@placeable  10000   64 ## white  red  Brick
+
+///
+
+@player        0   100 0 \@ red   none You!
+@animal        1    20 0 Uo black none Cow
+@animal        2    20 0 qp red   none Pig
+@animal        3    20 0 wm white none Sheep
+
+///
+
+// TASK(20260227-172726): Add reverse option to get the real black color from the terminal
 
 @object     1  1 1 ## black yellow Wood Bridge
 @object     2  5 0 OO black white  Stone Boulder
+@object     3 10 0 && black white  Furnace
 @object 10000 15 0 ## black red    Brick
