@@ -51,6 +51,13 @@ OVERLAY_MAP(X)
 SCREEN_MAP(X)
 #undef X
 
+static Screen *const CW_SCREENS[] = {
+#define X(state, name) &screen_##name,
+    SCREEN_MAP(X)
+#undef X
+    NULL, // TUI_STATE_QUIT
+};
+
 typedef enum {
 #define X(state, name) TUI_STATE_##state,
     SCREEN_MAP(X)

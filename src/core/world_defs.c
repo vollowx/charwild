@@ -1,42 +1,22 @@
 #include "core/helpers.h"
 #include "core/world_defs.h"
 
-static char *trim(char *s) {
-    while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r')
-        ++s;
-
-    size_t len = strlen(s);
-    while (len > 0 && (s[len - 1] == ' ' || s[len - 1] == '\t' ||
-                       s[len - 1] == '\n' || s[len - 1] == '\r')) {
-        s[--len] = '\0';
-    }
-
-    return s;
-}
-
-static int is_ignored_line(const char *s) {
-    return s[0] == '\0' || (s[0] == '/' && s[1] == '/');
-}
+static const struct { const char *name; short val; } COLOR_TABLE[] = {
+    {"none",    -1},
+    {"black",   COLOR_BLACK},
+    {"red",     COLOR_RED},
+    {"green",   COLOR_GREEN},
+    {"yellow",  COLOR_YELLOW},
+    {"blue",    COLOR_BLUE},
+    {"magenta", COLOR_MAGENTA},
+    {"cyan",    COLOR_CYAN},
+    {"white",   COLOR_WHITE},
+};
 
 static short parse_color(const char *s) {
-    if (strcmp(s, "none") == 0)
-        return -1;
-    if (strcmp(s, "black") == 0)
-        return COLOR_BLACK;
-    if (strcmp(s, "red") == 0)
-        return COLOR_RED;
-    if (strcmp(s, "green") == 0)
-        return COLOR_GREEN;
-    if (strcmp(s, "yellow") == 0)
-        return COLOR_YELLOW;
-    if (strcmp(s, "blue") == 0)
-        return COLOR_BLUE;
-    if (strcmp(s, "magenta") == 0)
-        return COLOR_MAGENTA;
-    if (strcmp(s, "cyan") == 0)
-        return COLOR_CYAN;
-    if (strcmp(s, "white") == 0)
-        return COLOR_WHITE;
+    for (size_t i = 0; i < sizeof(COLOR_TABLE) / sizeof(*COLOR_TABLE); ++i)
+        if (strcmp(s, COLOR_TABLE[i].name) == 0)
+            return COLOR_TABLE[i].val;
     return 0;
 }
 
@@ -69,8 +49,8 @@ bool definitions_load(
 
     char line_buf[512];
     while (fgets(line_buf, sizeof(line_buf), fp)) {
-        char *line = trim(line_buf);
-        if (is_ignored_line(line)) continue;
+        char *line = cw_trim(line_buf);
+        if (cw_is_ignored_line(line)) continue;
 
         if (strncmp(line, "@resource ", 10) == 0 ||
             strncmp(line, "@placeable ", 11) == 0 ||

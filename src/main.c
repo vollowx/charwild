@@ -66,17 +66,7 @@ int main(int argc, char *argv[]) {
             }
 
             ctx.cur_state = ctx.next_state;
-            switch (ctx.cur_state) {
-#define X(state, suffix)                                                       \
-            case TUI_STATE_##state:                                            \
-                ctx.cur_screen = &screen_##suffix;                             \
-                break;
-            SCREEN_MAP(X)
-#undef X
-            default:
-                ctx.cur_screen = NULL;
-                break;
-            }
+            ctx.cur_screen = CW_SCREENS[ctx.cur_state];
 
             ctx.cur_screen->init(&ctx);
         }

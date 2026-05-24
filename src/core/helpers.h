@@ -39,6 +39,23 @@
 
 extern Logs logs;
 
+static inline char *cw_trim(char *s) {
+    while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r')
+        ++s;
+
+    size_t len = strlen(s);
+    while (len > 0 && (s[len - 1] == ' ' || s[len - 1] == '\t' ||
+                       s[len - 1] == '\n' || s[len - 1] == '\r')) {
+        s[--len] = '\0';
+    }
+
+    return s;
+}
+
+static inline int cw_is_ignored_line(const char *s) {
+    return s[0] == '\0' || (s[0] == '/' && s[1] == '/');
+}
+
 #define do_defer_and_return(value)                                             \
     do {                                                                       \
         ret = (value);                                                         \

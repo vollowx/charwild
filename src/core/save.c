@@ -16,23 +16,6 @@ static char *get_save_path(int slot) {
     return buf;
 }
 
-static char *trim(char *s) {
-    while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r')
-        ++s;
-
-    size_t len = strlen(s);
-    while (len > 0 && (s[len - 1] == ' ' || s[len - 1] == '\t' ||
-                       s[len - 1] == '\n' || s[len - 1] == '\r')) {
-        s[--len] = '\0';
-    }
-
-    return s;
-}
-
-static int is_ignored_line(const char *s) {
-    return s[0] == '\0' || (s[0] == '/' && s[1] == '/');
-}
-
 static void clear_world(World *w) {
     free_world(w);
     memset(w, 0, sizeof(*w));
@@ -119,28 +102,29 @@ SaveResult save_load(Save *self, int slot, Cw *ctx) {
     if (!fp)
         do_defer_and_return(SAVE_ERR_OPEN);
 
-    clear_world(self->world);
     memset(&self->header, 0, sizeof(self->header));
+    clear_world(self->world);
+    da_reserve(&self->world->entities, 512);
 
     while (fgets(raw, sizeof(raw), fp)) {
-        char *line = trim(raw);
-        if (is_ignored_line(line))
+        char *line = cw_trim(raw);
+        if (cw_is_ignored_line(line))
             continue;
 
         if (strcmp(line, "@header") == 0 || strcmp(line, "@world") == 0) {
             continue;
         } else if (strncmp(line, "slot =", 6) == 0) {
-            self->header.slot = atoi(trim(line + 6));
+            self->header.slot = atoi(cw_trim(line + 6));
         } else if (strncmp(line, "version =", 9) == 0) {
-            self->header.version = (uint32_t)strtoul(trim(line + 9), NULL, 10);
+            self->header.version = (uint32_t)strtoul(cw_trim(line + 9), NULL, 10);
         } else if (strncmp(line, "player_name =", 13) == 0) {
             copy_name(self->header.player_name,
-                      sizeof(self->header.player_name), trim(line + 13));
+                      sizeof(self->header.player_name), cw_trim(line + 13));
         } else if (strncmp(line, "seed =", 6) == 0) {
-            self->world->seed = (uint32_t)strtoul(trim(line + 6), NULL, 10);
+            self->world->seed = (uint32_t)strtoul(cw_trim(line + 6), NULL, 10);
         } else if (strncmp(line, "timestamp =", 11) == 0) {
             self->header.timestamp =
-                (uint32_t)strtoul(trim(line + 11), NULL, 10);
+                (uint32_t)strtoul(cw_trim(line + 11), NULL, 10);
         } else if (strncmp(line, "@map ", 5) == 0) {
             size_t w = 0, h = 0;
             if (sscanf(line, "@map %zu %zu", &w, &h) != 2 || !w || !h)
@@ -296,17 +280,17 @@ SavePreview get_slot_preview(int slot) {
     }
 
     while (fgets(raw, sizeof(raw), fp)) {
-        char *line = trim(raw);
-        if (is_ignored_line(line))
+        char *line = cw_trim(raw);
+        if (cw_is_ignored_line(line))
             continue;
 
         if (strncmp(line, "slot =", 6) == 0)
-            p.header.slot = atoi(trim(line + 6));
+            p.header.slot = atoi(cw_trim(line + 6));
         else if (strncmp(line, "version =", 9) == 0)
-            p.header.version = (uint32_t)strtoul(trim(line + 9), NULL, 10);
+            p.header.version = (uint32_t)strtoul(cw_trim(line + 9), NULL, 10);
         else if (strncmp(line, "player_name =", 13) == 0)
             copy_name(p.header.player_name, sizeof(p.header.player_name),
-                      trim(line + 13));
+                      cw_trim(line + 13));
         else if (line[0] == '@' && strcmp(line, "@header") != 0)
             break;
     }
