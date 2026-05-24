@@ -7,9 +7,9 @@ typedef struct {
     int log_level;
     bool save_log;
     bool show_log;
-} GameOptions;
+} CwOptions;
 
-void options_load();
-void options_save();
+void options_load(CwOptions *opts, const char *path);
+bool options_save(CwOptions *opts, const char *path);
 
 #endif

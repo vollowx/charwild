@@ -27,7 +27,7 @@ void format_menu_item(char *dest, size_t size, const char *label,
              (total_width - label_width), value);
 }
 
-void rebuild_options_menu(void) {
+void rebuild_options_menu(CwTui *ctx) {
     int current_idx = 0;
 
     if (o_menu) {
@@ -64,11 +64,11 @@ void rebuild_options_menu(void) {
     const char *lvls[] = {"<Information>", "<Warning>", "<Error>"};
 
     format_menu_item(log_level_line, sizeof(log_level_line), "Show log level",
-                     lvls[current_options.log_level]);
+                     lvls[ctx->core->options->log_level]);
     format_menu_item(log_show_line, sizeof(log_show_line), "Show log window",
-                     current_options.show_log ? "[x]" : "[ ]");
+                     ctx->core->options->show_log ? "[x]" : "[ ]");
     format_menu_item(log_save_line, sizeof(log_save_line), "Save log locally",
-                     current_options.save_log ? "[x]" : "[ ]");
+                     ctx->core->options->save_log ? "[x]" : "[ ]");
 
     o_items[i++] = new_item(log_level_line, "");
     o_items[i++] = new_item(log_show_line, "");
@@ -99,7 +99,7 @@ void options_init(CwTui *ctx) {
     o_win = newwin(OPTIONS_HEIGHT, OPTIONS_WIDTH, (LINES - OPTIONS_HEIGHT) / 2,
                    (COLS - OPTIONS_WIDTH) / 2);
     keypad(o_win, TRUE);
-    rebuild_options_menu();
+    rebuild_options_menu(ctx);
 }
 
 void options_deinit(void) {
@@ -119,7 +119,7 @@ void options_input(CwTui *ctx) {
         menu_driver(o_menu, REQ_UP_ITEM);
         break;
     case 'q':
-        options_load();
+        options_load(ctx->core->options, CW_OPTIONS_PATH);
         ctx->next_state = TUI_STATE_MAIN_MENU;
         break;
     case 10: {
@@ -127,16 +127,16 @@ void options_input(CwTui *ctx) {
         const char *name = item_name(cur);
 
         if (strstr(name, "Show log level")) {
-            current_options.log_level = (current_options.log_level + 1) % 3;
-            rebuild_options_menu();
+            ctx->core->options->log_level = (ctx->core->options->log_level + 1) % 3;
+            rebuild_options_menu(ctx);
         } else if (strstr(name, "Show log window")) {
-            current_options.show_log = !current_options.show_log;
-            rebuild_options_menu();
+            ctx->core->options->show_log = !ctx->core->options->show_log;
+            rebuild_options_menu(ctx);
         } else if (strcmp(name, "Save") == 0) {
-            options_save();
+            options_save(ctx->core->options, CW_OPTIONS_PATH);
             ctx->next_state = TUI_STATE_MAIN_MENU;
         } else if (strcmp(name, "Cancel") == 0) {
-            options_load();
+            options_load(ctx->core->options, CW_OPTIONS_PATH);
             ctx->next_state = TUI_STATE_MAIN_MENU;
         }
         break;

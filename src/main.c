@@ -1,21 +1,24 @@
 #include <time.h>
 
+#include "core/helpers.h"
 #include "core/log.h"
 #include "core/options.h"
 #include "core/world_defs.h"
 #include "ui/fcp.h"
 #include "ui/tui_context.h"
 
-#define CW_FPS 60
-
 int main(int argc, char *argv[]) {
+    CwOptions options = {
+        .log_level = 0,
+        .show_log = true,
+    };
     Cw core_ctx = {
         .cur_slot = 0,
+        .options = &options,
     };
     CwTui ctx = {
         .cur_state = (CwTuiState)-1,
         .next_state = TUI_STATE_MAIN_MENU,
-
         .core = &core_ctx,
     };
 
@@ -42,7 +45,7 @@ int main(int argc, char *argv[]) {
         &ctx.core->entity_defs,
         &ctx.core->object_defs
     );
-    options_load();
+    options_load(ctx.core->options, CW_OPTIONS_PATH);
 
     struct timespec last_frame, current_frame;
     clock_gettime(CLOCK_MONOTONIC, &last_frame);

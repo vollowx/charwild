@@ -31,11 +31,12 @@
 #include "core/options.h"
 #include "ui/fcp.h"
 
+#define CW_OPTIONS_PATH "options.txt"
+#define CW_FPS 60
 #define CW_VERSION_MAJOR 0
 #define CW_VERSION_MINOR 0
 #define CW_VERSION_PATCH 0
 
-extern GameOptions current_options;
 extern Logs logs;
 
 #define do_defer_and_return(value)                                             \

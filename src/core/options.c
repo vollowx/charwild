@@ -3,43 +3,42 @@
 
 #include "core/log.h"
 #include "core/options.h"
+#include "core/helpers.h"
 
-#define PATH_OPTIONS "options.txt"
+void options_load(CwOptions *opts, const char *path) {
+    FILE *fp = fopen(path, "r");
 
-GameOptions current_options = {.log_level = 0, .show_log = true};
-
-void options_load() {
-    FILE *f = fopen(PATH_OPTIONS, "r");
-
-    if (!f) {
+    if (!fp) {
         warn("[options] %s not found, falling back to default options",
-             PATH_OPTIONS);
+             path);
         return;
     }
     char key[32];
     int val;
-    while (fscanf(f, "%31[^=]=%d\n", key, &val) == 2) {
+    while (fscanf(fp, "%31[^=]=%d\n", key, &val) == 2) {
         if (strcmp(key, "log_level") == 0)
-            current_options.log_level = val;
+            opts->log_level = val;
         else if (strcmp(key, "save_log") == 0)
-            current_options.save_log = (bool)val;
+            opts->save_log = (bool)val;
         else if (strcmp(key, "show_log") == 0)
-            current_options.show_log = (bool)val;
+            opts->show_log = (bool)val;
     }
-    fclose(f);
+    fclose(fp);
 
-    info("[options] options loaded from %s", PATH_OPTIONS);
+    info("[options] options loaded from %s", path);
 }
 
-void options_save() {
-    FILE *f = fopen(PATH_OPTIONS, "w");
+bool options_save(CwOptions *opts, const char *path) {
+    bool ret = true;
+    FILE *fp = fopen(path, "w");
+    if (!fp)
+        do_defer_and_return(false);
+    fprintf(fp, "log_level=%d\n", opts->log_level);
+    fprintf(fp, "save_log=%d\n", (int)opts->save_log);
+    fprintf(fp, "show_log=%d\n", (int)opts->show_log);
 
-    if (!f)
-        return;
-    fprintf(f, "log_level=%d\n", current_options.log_level);
-    fprintf(f, "save_log=%d\n", (int)current_options.save_log);
-    fprintf(f, "show_log=%d\n", (int)current_options.show_log);
-    fclose(f);
-
-    info("[options] options wrote to %s", PATH_OPTIONS);
+defer:
+    if (fp)  fclose(fp);
+    if (ret) info("[options] options wrote to %s", path);
+    return ret;
 }

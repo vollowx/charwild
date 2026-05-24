@@ -34,7 +34,7 @@ void log_frame(CwTui *ctx, double dt) {
 
     static bool was_showing = false;
 
-    if (!current_options.show_log) {
+    if (!ctx->core->options->show_log) {
         if (was_showing) {
             werase(l_win);
             wnoutrefresh(l_win);
@@ -56,7 +56,7 @@ void log_frame(CwTui *ctx, double dt) {
     while (i > 0 && line > 0) {
         const Log *log = &logs.items[--i];
 
-        if ((int)log->level >= current_options.log_level) {
+        if ((int)log->level >= ctx->core->options->log_level) {
             short cp = log_cp[log->level];
             wattron(l_win, COLOR_PAIR(cp));
             mvwprintw(l_win, line--, 0, "%s", log->msg);
