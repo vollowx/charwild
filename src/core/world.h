@@ -7,6 +7,8 @@
 
 #include <ncurses.h>
 
+#include "world_defs.h"
+
 // Order:
 // 1. item
 // 2. entity
@@ -23,55 +25,6 @@ typedef enum {
     ELEV_MOUNTAIN,
     _elevation_count,
 } Elevation;
-
-typedef enum {
-    ITEM_RESOURCE,   // Ore, wood
-    ITEM_PLACEABLE,  // Seeds, furniture
-    ITEM_CONSUMABLE, // Food, potions
-    ITEM_EQUIPMENT,  // Tools, armor
-} ItemType;
-
-typedef enum {
-    ENTITY_PLAYER,
-    ENTITY_NPC,
-    ENTITY_ENEMY,
-    ENTITY_ANIMAL,
-    ENTITY_ITEM,
-} EntityType;
-
-typedef struct {
-    uint16_t id;
-    ItemType type;
-    char name[32];
-    int max_stack;
-
-    char symbol[2];
-    short fg, bg;
-    attr_t attr;
-} ItemDef;
-
-typedef struct {
-    uint16_t id;
-    EntityType type;
-    char name[32];
-    int max_health;
-    bool is_passable;
-
-    char symbol[2];
-    short fg, bg;
-    attr_t attr;
-} EntityDef;
-
-typedef struct {
-    uint16_t id;
-    char name[32];
-    int max_health;
-    bool is_passable;
-
-    char symbol[2];
-    short fg, bg;
-    attr_t attr;
-} ObjectDef;
 
 typedef struct {
     const ItemDef *def;

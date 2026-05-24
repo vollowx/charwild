@@ -83,7 +83,7 @@ void main_menu_input(CwTui *ctx) {
     }
 }
 
-void main_menu_frame(double dt) {
+void main_menu_frame(CwTui *ctx, double dt) {
     UNUSED(dt);
     draw_win_frame(m_win, "Constructor", COLOR_BLUE);
     wnoutrefresh(m_win);

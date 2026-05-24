@@ -1,0 +1,20 @@
+// Lines start with "//" are ignored.
+
+// @resource, @placeable, @consumable, @equipment are for items.
+// @player, @animal are for entities
+
+// Syntax
+// @resource   id max_stack           symbol fg bg name
+// @placeable  id max_stack           symbol fg bg name
+// @consumable id max_stack           symbol fg bg name
+// @equipment  id max_durability      symbol fg bg name
+// @player     id max_health passable symbol fg bg name
+// @animal     id max_health passable symbol fg bg name
+// @object     id max_health passable symbol fg bg name
+
+@resource   0 64 cO yellow none Copper Ore
+
+
+@object     1  1 1 ## black yellow Wood Bridge
+@object     2  5 0 OO black white  Stone Boulder
+@object 10000 15 0 ## black red    Brick

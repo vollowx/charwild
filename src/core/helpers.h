@@ -38,6 +38,12 @@
 extern GameOptions current_options;
 extern Logs logs;
 
+#define do_defer_and_return(value)                                             \
+    do {                                                                       \
+        ret = (value);                                                         \
+        goto defer;                                                            \
+    } while (0)
+
 #define UNUSED (void)
 
 #define draw_win_frame(win, title, color)                                      \

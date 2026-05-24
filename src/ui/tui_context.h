@@ -19,7 +19,7 @@ typedef struct CwTui CwTui;
 
 typedef struct {
     void (*init)(CwTui *ctx);
-    void (*frame)(double dt);
+    void (*frame)(CwTui *ctx, double dt);
     void (*resize)(CwTui *ctx);
     void (*deinit)(void);
 } Overlay;
@@ -27,14 +27,14 @@ typedef struct {
 typedef struct {
     void (*init)(CwTui *ctx);
     void (*input)(CwTui *ctx);
-    void (*frame)(double dt);
+    void (*frame)(CwTui *ctx, double dt);
     void (*resize)(CwTui *ctx);
     void (*deinit)(void);
 } Screen;
 
 #define X(name)                                                                \
     void name##_init(CwTui *ctx);                                              \
-    void name##_frame(double dt);                                              \
+    void name##_frame(CwTui *ctx, double dt);                                              \
     void name##_resize(CwTui *ctx);                                            \
     void name##_deinit();                                                      \
     extern Overlay overlay_##name;
@@ -44,7 +44,7 @@ OVERLAY_MAP(X)
 #define X(state, name)                                                         \
     void name##_init(CwTui *ctx);                                              \
     void name##_input(CwTui *ctx);                                             \
-    void name##_frame(double dt);                                              \
+    void name##_frame(CwTui *ctx, double dt);                                              \
     void name##_resize(CwTui *ctx);                                            \
     void name##_deinit();                                                      \
     extern Screen screen_##name;

@@ -6,12 +6,6 @@
 #include "core/helpers.h"
 #include "core/save.h"
 
-#define do_defer_and_return(value)                                             \
-    do {                                                                       \
-        ret = (value);                                                         \
-        goto defer;                                                            \
-    } while (0)
-
 static char *get_save_path(int slot) {
     char *buf = malloc(128);
     if (!buf)

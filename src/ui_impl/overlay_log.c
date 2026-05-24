@@ -26,7 +26,7 @@ void log_deinit(void) {
     }
 }
 
-void log_frame(double dt) {
+void log_frame(CwTui *ctx, double dt) {
     UNUSED(dt);
 
     if (!l_win)

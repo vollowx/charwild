@@ -34,7 +34,7 @@ void about_input(CwTui *ctx) {
     }
 }
 
-void about_frame(double dt) {
+void about_frame(CwTui *ctx, double dt) {
     UNUSED(dt);
 
     if (!a_win)

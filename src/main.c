@@ -2,6 +2,7 @@
 
 #include "core/log.h"
 #include "core/options.h"
+#include "core/world_defs.h"
 #include "ui/fcp.h"
 #include "ui/tui_context.h"
 
@@ -35,6 +36,12 @@ int main(int argc, char *argv[]) {
     use_default_colors();
     fcp_init();
 
+    definitions_load(
+        "base.cwdef",
+        &ctx.core->item_defs,
+        &ctx.core->entity_defs,
+        &ctx.core->object_defs
+    );
     options_load();
 
     struct timespec last_frame, current_frame;
@@ -88,8 +95,8 @@ int main(int argc, char *argv[]) {
         }
 
         if (ctx.cur_screen)
-            ctx.cur_screen->frame(dt);
-#define X(name) name##_frame(dt);
+            ctx.cur_screen->frame(&ctx, dt);
+#define X(name) name##_frame(&ctx, dt);
             OVERLAY_MAP(X)
 #undef X
 

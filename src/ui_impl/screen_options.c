@@ -144,7 +144,7 @@ void options_input(CwTui *ctx) {
     }
 }
 
-void options_frame(double dt) {
+void options_frame(CwTui *ctx, double dt) {
     UNUSED(dt);
     draw_win_frame(o_win, "Options", COLOR_BLUE);
     wnoutrefresh(o_win);

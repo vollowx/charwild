@@ -174,7 +174,7 @@ void saves_input(CwTui *ctx) {
     }
 }
 
-void saves_frame(double dt) {
+void saves_frame(CwTui *ctx, double dt) {
     UNUSED(dt);
 
     if (!s_win || !s_pre)

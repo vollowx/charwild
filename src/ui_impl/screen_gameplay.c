@@ -1,5 +1,6 @@
 #include "core/log.h"
 #include "core/save.h"
+#include "core/world_defs.h"
 #include "ui/fcp.h"
 #include "ui/tui_context.h"
 
@@ -139,7 +140,7 @@ void gameplay_input(CwTui *ctx) {
     }
 }
 
-void gameplay_frame(double dt) {
+void gameplay_frame(CwTui *ctx, double dt) {
     if (!g_win || !current_save.world)
         return;
 
@@ -224,7 +225,8 @@ void gameplay_frame(double dt) {
                 ++fcp_get_calls;
                 ++fcp_get_calls_in_one_render;
             } else if (cell->object_id) {
-                const ObjectDef *def = object_get_def(cell->object_id);
+                // const ObjectDef *def = object_get_def(cell->object_id);
+                ObjectDef *def = object_def_lookup(ctx->core->object_defs, cell->object_id);
                 symbol[0] = def->symbol[0];
                 symbol[1] = def->symbol[1];
                 if (def->fg != -1)
