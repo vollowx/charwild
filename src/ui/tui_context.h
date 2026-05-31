@@ -1,8 +1,6 @@
 #ifndef TUI_CONTEXT_H
 #define TUI_CONTEXT_H
 
-#include <ncurses.h>
-
 #include "core/context.h"
 
 typedef struct CwTui CwTui;
@@ -12,46 +10,48 @@ typedef struct CwTui CwTui;
 // X(state, name)
 #define SCREEN_MAP(X)                                                          \
     X(MAIN_MENU, main_menu)                                                    \
-    X(SAVES, saves)                                                            \
-    X(GAMEPLAY, gameplay)                                                      \
-    X(OPTIONS, options)                                                        \
-    X(ABOUT, about)
+    X(SAVES,     saves)                                                        \
+    X(GAMEPLAY,  gameplay)                                                     \
+    X(OPTIONS,   options)                                                      \
+    X(ABOUT,     about)
 
 typedef struct {
     void (*init)(CwTui *ctx);
+    void (*deinit)(void);
     void (*frame)(CwTui *ctx);
     void (*resize)(CwTui *ctx);
-    void (*deinit)(void);
-} Overlay;
+} CwTuiOverlay;
 
 typedef struct {
     void (*init)(CwTui *ctx);
+    void (*deinit)(void);
+    void (*frame)(CwTui *ctx);
+    void (*resize)(CwTui *ctx);
     void (*input)(CwTui *ctx);
-    void (*frame)(CwTui *ctx);
-    void (*resize)(CwTui *ctx);
-    void (*deinit)(void);
-} Screen;
+} CwTuiScreen;
 
-#define X(name)                                                                \
+#define DECLARE_VIEW_FUNCTIONS(name)                                           \
     void name##_init(CwTui *ctx);                                              \
+    void name##_deinit(void);                                                  \
     void name##_frame(CwTui *ctx);                                             \
     void name##_resize(CwTui *ctx);                                            \
-    void name##_deinit();                                                      \
-    extern Overlay overlay_##name;
+
+#define X(name)                                                                \
+    DECLARE_VIEW_FUNCTIONS(name)                                               \
+    extern CwTuiOverlay overlay_##name;
 OVERLAY_MAP(X)
 #undef X
 
 #define X(state, name)                                                         \
-    void name##_init(CwTui *ctx);                                              \
+    DECLARE_VIEW_FUNCTIONS(name)                                               \
     void name##_input(CwTui *ctx);                                             \
-    void name##_frame(CwTui *ctx);                                             \
-    void name##_resize(CwTui *ctx);                                            \
-    void name##_deinit();                                                      \
-    extern Screen screen_##name;
+    extern CwTuiScreen screen_##name;
 SCREEN_MAP(X)
 #undef X
 
-static Screen *const CW_SCREENS[] = {
+#undef DECLARE_VIEW_FUNCTIONS
+
+static CwTuiScreen *const CW_SCREENS[] = {
 #define X(state, name) &screen_##name,
     SCREEN_MAP(X)
 #undef X
@@ -62,7 +62,7 @@ typedef enum {
 #define X(state, name) TUI_STATE_##state,
     SCREEN_MAP(X)
 #undef X
-        TUI_STATE_QUIT,
+    TUI_STATE_QUIT,
     __tui_state_count,
 } CwTuiState;
 
@@ -72,9 +72,8 @@ struct CwTui {
     double frame_time;
     CwTuiState cur_state;
     CwTuiState next_state;
-    Screen *cur_screen;
-
+    CwTuiScreen *cur_screen;
     Cw *core;
 };
 
-#endif // INFO_H
+#endif // TUI_CONTEXT_H

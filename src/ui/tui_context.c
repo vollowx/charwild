@@ -1,13 +1,13 @@
 #include "ui/tui_context.h"
 
 #define X(name)                                                                \
-    Overlay overlay_##name = {name##_init, name##_frame, name##_resize,        \
-                              name##_deinit};
+    CwTuiOverlay overlay_##name = {name##_init, name##_deinit, name##_frame,   \
+                                   name##_resize};
 OVERLAY_MAP(X)
 #undef X
 
 #define X(state, name)                                                         \
-    Screen screen_##name = {name##_init, name##_input, name##_frame,           \
-                            name##_resize, name##_deinit};
+    CwTuiScreen screen_##name = {name##_init, name##_deinit, name##_frame,     \
+                                 name##_resize, name##_input};
 SCREEN_MAP(X)
 #undef X

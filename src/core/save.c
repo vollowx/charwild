@@ -5,6 +5,7 @@
 
 #include "core/context.h"
 #include "core/common.h"
+#include "core/log.h"
 #include "core/world_defs.h"
 #include "core/save.h"
 
@@ -26,6 +27,8 @@ static void copy_name(char *dst, size_t n, const char *src) {
 }
 
 SaveResult save_save(const Save *self, int slot) {
+    info("[save] saving slot %d", slot);
+
     SaveResult ret = SAVE_OK;
     char *path = get_save_path(slot);
     FILE *fp = NULL;
@@ -88,6 +91,7 @@ defer:
 }
 
 SaveResult save_load(Save *self, int slot, Cw *ctx) {
+    info("[save] loading to slot %d", slot);
     SaveResult ret = SAVE_OK;
     char *path = get_save_path(slot);
     FILE *fp = NULL;
@@ -236,8 +240,10 @@ SaveResult save_load(Save *self, int slot, Cw *ctx) {
 defer:
     if (fp)
         fclose(fp);
-    if (ret != SAVE_OK)
+    if (ret != SAVE_OK) {
         clear_world(self->world);
+        error("[save] failed to load save");
+    }
     free(path);
     return ret;
 }
