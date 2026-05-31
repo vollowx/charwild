@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
             .log_level = 0,
             .show_log = true,
         },
-        .cur_slot = 0,
+        .current_slot = 0,
     };
     CwTui ctx = {
         .cur_state = (CwTuiState)-1,
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 
         if (ctx.next_state != ctx.cur_state) {
             if (ctx.cur_screen) {
-                ctx.cur_screen->deinit();
+                ctx.cur_screen->deinit(&ctx);
             }
 
             ctx.cur_state = ctx.next_state;
@@ -85,8 +85,8 @@ int main(int argc, char *argv[]) {
         napms(1000 / CW_FPS);
     }
 
-    ctx.cur_screen->deinit();
-    log_deinit();
+    ctx.cur_screen->deinit(&ctx);
+    log_deinit(&ctx);
     endwin();
 
     free_logs();

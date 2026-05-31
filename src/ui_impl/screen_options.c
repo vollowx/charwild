@@ -101,7 +101,7 @@ void options_init(CwTui *ctx) {
     rebuild_options_menu(ctx);
 }
 
-void options_deinit(void) {
+void options_deinit(CwTui *ctx) {
     werase(o_win);
     wnoutrefresh(o_win);
     free_menu_ctx(o_win, o_menu, o_items, OPTIONS_HEIGHT - 4, false);

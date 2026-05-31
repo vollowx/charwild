@@ -16,7 +16,7 @@ void about_init(CwTui *ctx) {
     keypad(a_win, TRUE);
 }
 
-void about_deinit(void) {
+void about_deinit(CwTui *ctx) {
     werase(a_win);
     wnoutrefresh(a_win);
     delwin(a_win);

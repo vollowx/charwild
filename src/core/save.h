@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 
-#include "core/context.h"
 #include "core/world.h"
+
+typedef struct Cw Cw;
 
 #define SAVE_VERSION 1
 #define MAX_N_SLOTS 3

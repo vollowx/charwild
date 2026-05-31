@@ -52,7 +52,7 @@ void rebuild_saves_menu(CwTui *ctx) {
     set_menu_mark(s_menu, " > ");
     set_menu_fore(s_menu,
                   COLOR_PAIR(fcp_get(COLOR_BLUE, -1)) | A_BOLD | A_REVERSE);
-    set_current_item(s_menu, s_items[ctx->core->cur_slot]);
+    set_current_item(s_menu, s_items[ctx->core->current_slot]);
 
     post_menu(s_menu);
 }
@@ -73,7 +73,7 @@ void saves_init(CwTui *ctx) {
     rebuild_saves_menu(ctx);
 }
 
-void saves_deinit(void) {
+void saves_deinit(CwTui *ctx) {
     werase(s_win);
     werase(s_pre);
     wnoutrefresh(s_win);
@@ -90,7 +90,7 @@ void saves_input(CwTui *ctx) {
 
     ITEM *cur = current_item(s_menu);
     if (cur) {
-        ctx->core->cur_slot = item_index(cur);
+        ctx->core->current_slot = item_index(cur);
     }
 
     switch (ctx->ch) {

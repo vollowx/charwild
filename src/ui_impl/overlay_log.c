@@ -18,7 +18,7 @@ void log_init(CwTui *ctx) {
     l_win = newwin(height, COLS, LINES - height, 0);
 }
 
-void log_deinit(void) {
+void log_deinit(CwTui *ctx) {
     werase(l_win);
     wnoutrefresh(l_win);
     delwin(l_win);

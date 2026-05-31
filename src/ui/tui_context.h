@@ -17,14 +17,14 @@ typedef struct CwTui CwTui;
 
 typedef struct {
     void (*init)(CwTui *ctx);
-    void (*deinit)(void);
+    void (*deinit)(CwTui *ctx);
     void (*frame)(CwTui *ctx);
     void (*resize)(CwTui *ctx);
 } CwTuiOverlay;
 
 typedef struct {
     void (*init)(CwTui *ctx);
-    void (*deinit)(void);
+    void (*deinit)(CwTui *ctx);
     void (*frame)(CwTui *ctx);
     void (*resize)(CwTui *ctx);
     void (*input)(CwTui *ctx);
@@ -32,7 +32,7 @@ typedef struct {
 
 #define DECLARE_VIEW_FUNCTIONS(name)                                           \
     void name##_init(CwTui *ctx);                                              \
-    void name##_deinit(void);                                                  \
+    void name##_deinit(CwTui *ctx);                                            \
     void name##_frame(CwTui *ctx);                                             \
     void name##_resize(CwTui *ctx);                                            \
 

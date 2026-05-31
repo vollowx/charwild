@@ -43,7 +43,7 @@ void main_menu_init(CwTui *ctx) {
     post_menu(m_menu);
 }
 
-void main_menu_deinit(void) {
+void main_menu_deinit(CwTui *ctx) {
     werase(m_win);
     wnoutrefresh(m_win);
     free_menu_ctx(m_win, m_menu, m_items, MAIN_MENU_N_ITEMS, false);

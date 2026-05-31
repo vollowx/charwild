@@ -7,8 +7,9 @@
 
 #include <ncurses.h>
 
-#include "core/context.h"
-#include "world_defs.h"
+#include "core/world_defs.h"
+
+typedef struct Cw Cw;
 
 // Order:
 // 1. item
