@@ -150,7 +150,7 @@ static inline int cw_is_ignored_line(const char *s) {
         size_t j = (i);                                                        \
         NOB_ASSERT(j < (da)->count);                                           \
         (da)->items[j] = (da)->items[--(da)->count];                           \
-    } while (0) use these
+    } while (0)
 
 #define nob_da_foreach(Type, it, da)                                           \
     for (Type *it = (da)->items; it < (da)->items + (da)->count; ++it)
