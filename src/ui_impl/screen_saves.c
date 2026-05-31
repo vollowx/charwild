@@ -113,11 +113,7 @@ void saves_input(CwTui *ctx) {
         } else {
             World world = {0};
             world_init(&world, ctx->core);
-            Save save = {0};
-            save.world = &world;
-            save_init(&save);
-            strcpy(save.header.player_name, world.player->name);
-            save_save(&save, slot);
+            save_save(&world, slot);
             world_free(&world);
 
             rebuild_saves_menu(ctx);
@@ -149,13 +145,10 @@ void saves_input(CwTui *ctx) {
         curs_set(0);
 
         if (strlen(new_name) > 0) {
-            World game = {0};
-            Save save = {0};
-            save.world = &game;
-            if (save_load(&save, slot, ctx->core) == SAVE_OK) {
-                strcpy(save.header.player_name, new_name);
-                strcpy(game.player->name, new_name);
-                if (save_save(&save, slot) == SAVE_OK) {
+            World world = {0};
+            if (save_load(&world, slot, ctx->core) == SAVE_OK) {
+                strcpy(world.player->name, new_name);
+                if (save_save(&world, slot) == SAVE_OK) {
                     info("[save] Renamed slot %d to %s", slot, new_name);
                 } else {
                     error("[save] Failed to rename slot saving save");
@@ -163,7 +156,7 @@ void saves_input(CwTui *ctx) {
             } else {
                 error("[save] Failed to rename slot loading save");
             }
-            world_free(save.world);
+            world_free(&world);
         }
 
         rebuild_saves_menu(ctx);

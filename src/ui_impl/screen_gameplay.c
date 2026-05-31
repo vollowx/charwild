@@ -34,7 +34,6 @@ void gameplay_init(CwTui *ctx) {
 
     static bool first_run = true;
     if (first_run) {
-        ctx->core->current_save.world = &ctx->core->current_world;
         first_run = false;
 
         for (int i = 0; i < _elevation_count; ++i) {
@@ -43,7 +42,7 @@ void gameplay_init(CwTui *ctx) {
         }
     }
 
-    if (save_load(&ctx->core->current_save, ctx->core->current_slot, ctx->core) != SAVE_OK) {
+    if (save_load(&ctx->core->current_world, ctx->core->current_slot, ctx->core) != SAVE_OK) {
         ctx->next_state = TUI_STATE_MAIN_MENU;
         return;
     }
@@ -59,8 +58,7 @@ void gameplay_deinit(CwTui *ctx) {
         delwin(g_win);
         g_win = NULL;
     }
-    world_free(ctx->core->current_save.world);
-    ctx->core->current_save.world = NULL;
+    world_free(&ctx->core->current_world);
 
     g_need_redraw = true;
 }
@@ -137,8 +135,6 @@ void gameplay_input(CwTui *ctx) {
 }
 
 void gameplay_frame(CwTui *ctx) {
-    assert(ctx->core->current_save.world);
-
     static double tick_accumulator = 0;
     const double tick_rate = 1.0 / 20.0;
 
@@ -154,8 +150,8 @@ void gameplay_frame(CwTui *ctx) {
     if (!g_need_redraw)
         return;
 
-    Entity *p = ctx->core->current_save.world->player;
-    Map *map = ctx->core->current_save.world->map;
+    Entity *p = ctx->core->current_world.player;
+    Map *map = ctx->core->current_world.map;
 
     static int redraw_count = 0;
     static int fcp_get_calls = 0;
@@ -255,7 +251,7 @@ void gameplay_frame(CwTui *ctx) {
     mvwprintw(g_win, 0, 0, "cell: { elevation: %d }",
               map->cells[p->y][p->x].elevation);
     mvwprintw(g_win, 1, 0, "player: { x: %zu, y: %zu }", p->x, p->y);
-    mvwprintw(g_win, 2, 0, "entities: %zu", ctx->core->current_save.world->entities.count);
+    mvwprintw(g_win, 2, 0, "entities: %zu", ctx->core->current_world.entities.count);
     mvwprintw(g_win, 3, 0, "redraws: %d", ++redraw_count);
     mvwprintw(g_win, 4, 0, "fcp_get calls: %d / %d",
               fcp_get_calls_in_one_render, fcp_get_calls);
