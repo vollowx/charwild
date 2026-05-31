@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "core/helpers.h"
+#include "core/common.h"
 #include "core/log.h"
 
 Logs logs = {0};
@@ -23,9 +23,8 @@ void log_message(LogLevel level, const char *fmt, ...) {
 }
 
 void free_logs(void) {
-    da_foreach(Log, it, &logs) {
+    da_foreach(Log, it, &logs)
         free(it->msg);
-    }
     da_free(logs);
     logs.count = 0;
     logs.capacity = 0;

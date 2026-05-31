@@ -1,6 +1,6 @@
 #include <menu.h>
 
-#include "core/helpers.h"
+#include "core/common.h"
 #include "core/log.h"
 #include "core/options.h"
 #include "ui/fcp.h"
@@ -30,7 +30,7 @@ void format_menu_item(char *dest, size_t size, const char *label,
 void rebuild_options_menu(CwTui *ctx) {
     int current_idx = 0;
 
-    if (o_menu) {
+    if (o_menu && o_items) { // Not first run
         ITEM *cur = current_item(o_menu);
         if (cur) {
             current_idx = item_index(cur);
@@ -38,8 +38,7 @@ void rebuild_options_menu(CwTui *ctx) {
         unpost_menu(o_menu);
         free_menu(o_menu);
         o_menu = NULL;
-    }
-    if (o_items) {
+
         for (int i = 0; i < OPTIONS_HEIGHT - 4 + 1; i++) {
             free_item(o_items[i]);
         }
@@ -144,13 +143,11 @@ void options_input(CwTui *ctx) {
     }
 }
 
-void options_frame(CwTui *ctx, double dt) {
-    UNUSED(dt);
+void options_frame(CwTui *ctx) {
     draw_win_frame(o_win, "Options", COLOR_BLUE);
     wnoutrefresh(o_win);
 }
 
 void options_resize(CwTui *ctx) {
-    if (o_win)
-        mvwin(o_win, (LINES - OPTIONS_HEIGHT) / 2, (COLS - OPTIONS_WIDTH) / 2);
+    mvwin(o_win, (LINES - OPTIONS_HEIGHT) / 2, (COLS - OPTIONS_WIDTH) / 2);
 }

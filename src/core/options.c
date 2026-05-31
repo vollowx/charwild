@@ -3,7 +3,7 @@
 
 #include "core/log.h"
 #include "core/options.h"
-#include "core/helpers.h"
+#include "core/common.h"
 
 void options_load(CwOptions *opts, const char *path) {
     FILE *fp = fopen(path, "r");

@@ -4,7 +4,7 @@
 #include <time.h>
 
 #include "core/context.h"
-#include "core/helpers.h"
+#include "core/common.h"
 #include "core/world_defs.h"
 #include "core/save.h"
 

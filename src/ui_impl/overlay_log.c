@@ -1,4 +1,4 @@
-#include "core/helpers.h"
+#include "core/common.h"
 #include "core/log.h"
 #include "core/options.h"
 #include "ui/fcp.h"
@@ -21,17 +21,10 @@ void log_init(CwTui *ctx) {
 void log_deinit(void) {
     werase(l_win);
     wnoutrefresh(l_win);
-    if (l_win) {
-        delwin(l_win);
-    }
+    delwin(l_win);
 }
 
-void log_frame(CwTui *ctx, double dt) {
-    UNUSED(dt);
-
-    if (!l_win)
-        return;
-
+void log_frame(CwTui *ctx) {
     static bool was_showing = false;
 
     if (!ctx->core->options->show_log) {
@@ -68,9 +61,6 @@ void log_frame(CwTui *ctx, double dt) {
 }
 
 void log_resize(CwTui *ctx) {
-    if (!l_win)
-        return;
-
     int height = LOG_UI_CAPACITY + 1;
     wresize(l_win, height, COLS);
     mvwin(l_win, LINES - height, 0);

@@ -4,7 +4,7 @@
 #include <simplexnoise1234.h>
 
 #include "core/context.h"
-#include "core/helpers.h"
+#include "core/common.h"
 #include "core/world.h"
 
 bool entity_move(Entity *e, Map *map, int dx, int dy) {

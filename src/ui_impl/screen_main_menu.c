@@ -1,6 +1,6 @@
 #include <menu.h>
 
-#include "core/helpers.h"
+#include "core/common.h"
 #include "core/log.h"
 #include "ui/fcp.h"
 #include "ui/tui_context.h"
@@ -83,8 +83,7 @@ void main_menu_input(CwTui *ctx) {
     }
 }
 
-void main_menu_frame(CwTui *ctx, double dt) {
-    UNUSED(dt);
+void main_menu_frame(CwTui *ctx) {
     draw_win_frame(m_win, "charwild", COLOR_BLUE);
     wnoutrefresh(m_win);
 }

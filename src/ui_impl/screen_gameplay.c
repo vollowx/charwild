@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "core/log.h"
 #include "core/save.h"
 #include "core/world_defs.h"
@@ -28,15 +30,15 @@ WINDOW *g_win = NULL;
 World current_world = {0};
 Save current_save = {0};
 
-bool g_is_first_run = true;
 bool g_need_redraw = true;
 
 void gameplay_init(CwTui *ctx) {
     info("[model] screen = gameplay");
 
-    if (g_is_first_run) {
+    static bool first_run = true;
+    if (first_run) {
         current_save.world = &current_world;
-        g_is_first_run = false;
+        first_run = false;
 
         for (int i = 0; i < _elevation_count; ++i) {
             CELL_VISUAL_DB[i].cp =
@@ -66,10 +68,6 @@ void gameplay_deinit(void) {
 }
 
 void gameplay_input(CwTui *ctx) {
-    Entity *p = current_save.world->player;
-    if (!p)
-        return;
-
     switch (ctx->ch) {
     case KEY_UP:
         // TASK(20260227-142821): Redesign player movement, consider add into
@@ -140,14 +138,13 @@ void gameplay_input(CwTui *ctx) {
     }
 }
 
-void gameplay_frame(CwTui *ctx, double dt) {
-    if (!g_win || !current_save.world)
-        return;
+void gameplay_frame(CwTui *ctx) {
+    assert(current_save.world);
 
     static double tick_accumulator = 0;
     const double tick_rate = 1.0 / 20.0;
 
-    tick_accumulator += dt;
+    tick_accumulator += ctx->frame_time;
     while (tick_accumulator >= tick_rate) {
         // game_tick should be called 20 times a sec
         if (world_tick(&current_world, tick_rate)) {
@@ -273,8 +270,6 @@ void gameplay_frame(CwTui *ctx, double dt) {
 }
 
 void gameplay_resize(CwTui *ctx) {
-    if (g_win) {
-        wresize(g_win, LINES, COLS);
-        mvwin(g_win, 0, 0);
-    }
+    wresize(g_win, LINES, COLS);
+    mvwin(g_win, 0, 0);
 }

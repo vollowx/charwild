@@ -1,4 +1,4 @@
-#include "core/helpers.h"
+#include "core/common.h"
 #include "core/world_defs.h"
 
 static const struct { const char *name; short val; } COLOR_TABLE[] = {

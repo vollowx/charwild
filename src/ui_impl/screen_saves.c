@@ -1,6 +1,6 @@
 #include <menu.h>
 
-#include "core/helpers.h"
+#include "core/common.h"
 #include "core/log.h"
 #include "core/save.h"
 #include "ui/fcp.h"
@@ -19,11 +19,10 @@ static WINDOW *s_pre = NULL;
 static SavePreview previews[3];
 
 void rebuild_saves_menu(CwTui *ctx) {
-    if (s_menu) {
+    if (s_menu && s_items) { // Not first run
         unpost_menu(s_menu);
         free_menu(s_menu);
-    }
-    if (s_items) {
+
         for (int i = 0; i < 3; i++) {
             free((void *)item_name(s_items[i]));
             free_item(s_items[i]);
@@ -82,10 +81,8 @@ void saves_deinit(void) {
 
     free_menu_ctx(s_win, s_menu, s_items, 3, true);
 
-    if (s_pre) {
-        delwin(s_pre);
-        s_pre = NULL;
-    }
+    delwin(s_pre);
+    s_pre = NULL;
 }
 
 void saves_input(CwTui *ctx) {
@@ -174,12 +171,7 @@ void saves_input(CwTui *ctx) {
     }
 }
 
-void saves_frame(CwTui *ctx, double dt) {
-    UNUSED(dt);
-
-    if (!s_win || !s_pre)
-        return;
-
+void saves_frame(CwTui *ctx) {
     draw_win_frame(s_win, "Select Save", COLOR_BLUE);
     wnoutrefresh(s_win);
 
@@ -209,9 +201,6 @@ void saves_frame(CwTui *ctx, double dt) {
 }
 
 void saves_resize(CwTui *ctx) {
-    if (!s_win || !s_pre)
-        return;
-
     int total_w = SAVES_WIDTH + 1 + PREVIEW_WIDTH;
     int start_x = (COLS - total_w) / 2;
     int start_y = (LINES - PREVIEW_HEIGHT) / 2;
