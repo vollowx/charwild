@@ -18,7 +18,7 @@ static char *get_save_path(int slot) {
 }
 
 static void clear_world(World *w) {
-    free_world(w);
+    world_free(w);
     memset(w, 0, sizeof(*w));
 }
 
@@ -133,7 +133,7 @@ SaveResult save_load(Save *self, int slot, Cw *ctx) {
             size_t w = 0, h = 0;
             if (sscanf(line, "@map %zu %zu", &w, &h) != 2 || !w || !h)
                 do_defer_and_return(SAVE_ERR_READ);
-            self->world->map = new_map(h, w);
+            self->world->map = map_alloc(h, w);
             if (!self->world->map)
                 do_defer_and_return(SAVE_ERR_READ);
             row = 0;

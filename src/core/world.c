@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <time.h>
 
 #include <ncurses.h>
@@ -43,11 +44,7 @@ bool entity_move(Entity *e, Map *map, int dx, int dy) {
 
 bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
                          int dy) {
-    if (!e || !map || !map->cells) {
-        error("[entity_place_object] NULL pointer passed (e: %p, map: %p)",
-              (void *)e, (void *)map);
-        return false;
-    }
+    assert(e && map && map->cells);
 
     int tx = (int)e->x + dx;
     int ty = (int)e->y + dy;
@@ -59,23 +56,17 @@ bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
 
     MapCell *target_cell = &map->cells[ty][tx];
 
-    if (target_cell->object_id != 0 && object_id != 0) {
-        warn("[entity_place_object] Cell (%d, %d) occupied by object %u", tx,
-             ty, target_cell->object_id);
+    if (target_cell->object_id != 0 && object_id != 0)
         return false;
-    }
-
-    if (target_cell->entity != NULL) {
-        warn("entity_place_object: Cell (%d, %d) occupied by entity", tx, ty);
+    if (target_cell->entity != NULL)
         return false;
-    }
 
     target_cell->object_id = object_id;
 
     return true;
 }
 
-Map *new_map(size_t height, size_t width) {
+Map *map_alloc(size_t height, size_t width) {
     // 1. Allocate the Map container
     Map *map = malloc(sizeof(Map));
     if (!map)
@@ -110,7 +101,7 @@ Map *new_map(size_t height, size_t width) {
     return map;
 }
 
-void free_map(Map *map) {
+void map_free(Map *map) {
     if (!map)
         return;
 
@@ -123,7 +114,7 @@ void free_map(Map *map) {
 
 // TASK(20260223-173936): Chunk-ize game both in struct and file
 void world_init(World *w, Cw *ctx) {
-    w->map = new_map(2048, 2048);
+    w->map = map_alloc(2048, 2048);
 
     w->entities.items = NULL;
     w->entities.count = 0;
@@ -164,26 +155,20 @@ void world_init(World *w, Cw *ctx) {
     w->map->cells[w->player->y][w->player->x].entity = w->player;
 }
 
-void free_world(World *w) {
-    if (!w)
-        return;
+void world_free(World *w) {
+    assert(w);
 
-    if (w->map) {
-        free_map(w->map);
-        w->map = NULL;
-    }
+    map_free(w->map);
+    w->map = NULL;
 
     da_foreach(Entity, it, &w->entities)
         if (it->inventory.items)
             free(it->inventory.items);
 
-    if (w->entities.items) {
-        free(w->entities.items);
-        w->entities.items = NULL;
-    }
-
+    da_free(w->entities);
     w->entities.count = 0;
     w->entities.capacity = 0;
+
     w->player = NULL;
 }
 

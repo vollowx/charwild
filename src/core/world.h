@@ -68,6 +68,7 @@ typedef struct {
 
 typedef struct {
     uint32_t seed;
+    uint32_t timestamp;
 
     Map *map;
     Entity *player;
@@ -78,10 +79,10 @@ bool entity_move(Entity *e, Map *map, int dx, int dy);
 bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
                          int dy);
 
-Map *new_map(size_t height, size_t width);
-void free_map(Map *map);
+Map *map_alloc(size_t height, size_t width);
+void map_free(Map *map);
 
-void free_world(World *);
+void world_free(World *);
 void world_init(World *, Cw *ctx);
 void world_gen_area(World *, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ctx);
 bool world_tick(World *, double dt);

@@ -118,7 +118,7 @@ void saves_input(CwTui *ctx) {
             save_init(&save);
             strcpy(save.header.player_name, world.player->name);
             save_save(&save, slot);
-            free_world(&world);
+            world_free(&world);
 
             rebuild_saves_menu(ctx);
         }
@@ -163,7 +163,7 @@ void saves_input(CwTui *ctx) {
             } else {
                 error("[save] Failed to rename slot loading save");
             }
-            free_world(save.world);
+            world_free(save.world);
         }
 
         rebuild_saves_menu(ctx);

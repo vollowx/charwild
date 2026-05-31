@@ -62,7 +62,8 @@ void gameplay_deinit(void) {
         delwin(g_win);
         g_win = NULL;
     }
-    free_world(current_save.world);
+    world_free(current_save.world);
+    current_save.world = NULL;
 
     g_need_redraw = true;
 }
