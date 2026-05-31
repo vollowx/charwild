@@ -8,13 +8,12 @@
 #include "ui/tui_context.h"
 
 int main(int argc, char *argv[]) {
-    CwOptions options = {
-        .log_level = 0,
-        .show_log = true,
-    };
     Cw core_ctx = {
+        .options = {
+            .log_level = 0,
+            .show_log = true,
+        },
         .cur_slot = 0,
-        .options = &options,
     };
     CwTui ctx = {
         .cur_state = (CwTuiState)-1,
@@ -45,7 +44,7 @@ int main(int argc, char *argv[]) {
         &ctx.core->entity_defs,
         &ctx.core->object_defs
     );
-    options_load(ctx.core->options, CW_OPTIONS_PATH);
+    options_load(&ctx.core->options, CW_OPTIONS_PATH);
 
     log_init(&ctx);
 

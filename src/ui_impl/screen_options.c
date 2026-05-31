@@ -63,11 +63,11 @@ void rebuild_options_menu(CwTui *ctx) {
     const char *lvls[] = {"<Information>", "<Warning>", "<Error>"};
 
     format_menu_item(log_level_line, sizeof(log_level_line), "Show log level",
-                     lvls[ctx->core->options->log_level]);
+                     lvls[ctx->core->options.log_level]);
     format_menu_item(log_show_line, sizeof(log_show_line), "Show log window",
-                     ctx->core->options->show_log ? "[x]" : "[ ]");
+                     ctx->core->options.show_log ? "[x]" : "[ ]");
     format_menu_item(log_save_line, sizeof(log_save_line), "Save log locally",
-                     ctx->core->options->save_log ? "[x]" : "[ ]");
+                     ctx->core->options.save_log ? "[x]" : "[ ]");
 
     o_items[i++] = new_item(log_level_line, "");
     o_items[i++] = new_item(log_show_line, "");
@@ -118,7 +118,7 @@ void options_input(CwTui *ctx) {
         menu_driver(o_menu, REQ_UP_ITEM);
         break;
     case 'q':
-        options_load(ctx->core->options, CW_OPTIONS_PATH);
+        options_load(&ctx->core->options, CW_OPTIONS_PATH);
         ctx->next_state = TUI_STATE_MAIN_MENU;
         break;
     case 10: {
@@ -126,16 +126,16 @@ void options_input(CwTui *ctx) {
         const char *name = item_name(cur);
 
         if (strstr(name, "Show log level")) {
-            ctx->core->options->log_level = (ctx->core->options->log_level + 1) % 3;
+            ctx->core->options.log_level = (ctx->core->options.log_level + 1) % 3;
             rebuild_options_menu(ctx);
         } else if (strstr(name, "Show log window")) {
-            ctx->core->options->show_log = !ctx->core->options->show_log;
+            ctx->core->options.show_log = !ctx->core->options.show_log;
             rebuild_options_menu(ctx);
         } else if (strcmp(name, "Save") == 0) {
-            options_save(ctx->core->options, CW_OPTIONS_PATH);
+            options_save(&ctx->core->options, CW_OPTIONS_PATH);
             ctx->next_state = TUI_STATE_MAIN_MENU;
         } else if (strcmp(name, "Cancel") == 0) {
-            options_load(ctx->core->options, CW_OPTIONS_PATH);
+            options_load(&ctx->core->options, CW_OPTIONS_PATH);
             ctx->next_state = TUI_STATE_MAIN_MENU;
         }
         break;

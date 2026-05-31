@@ -8,9 +8,9 @@
 
 // charwild context
 typedef struct {
-    size_t cur_slot;
+    CwOptions options;
 
-    CwOptions *options;
+    size_t cur_slot;
 
     ItemDefs item_defs;
     EntityDefs entity_defs;
