@@ -132,7 +132,6 @@ void world_init(World *w, Cw *ctx) {
         malloc(sizeof(ItemStack) * player.inventory.capacity);
 
     da_append(&w->entities, player);
-    w->player = &player;
 
     srand((unsigned int)time(NULL));
     w->seed = ((uint32_t)rand() << 16) | (uint32_t)rand();
@@ -140,7 +139,6 @@ void world_init(World *w, Cw *ctx) {
     size_t py = 1024, px = 1024, y_offset = 0;
     world_gen_area(w, py - 256, px - 256, py + 256, px + 256, ctx);
 
-    // TODO: Review: relink player pointer after potential realloc from world_gen_area
     w->player = &w->entities.items[0];
 
     // TODO: Fails in a rather small possibility
@@ -156,80 +154,74 @@ void world_init(World *w, Cw *ctx) {
 }
 
 void world_free(World *w) {
-    assert(w && "Double free");
+    assert(w != NULL);
 
     map_free(w->map);
-    w->map = NULL;
-
     da_foreach(Entity, it, &w->entities)
-        if (it->inventory.items)
-            free(it->inventory.items);
-
+        free(it->inventory.items);
     da_free(w->entities);
-    w->entities.count = 0;
-    w->entities.capacity = 0;
-
-    w->player = NULL;
 }
 
 void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ctx) {
-    if (!w || !w->map)
-        return;
+    assert(w && w->map);
+
     Map *map = w->map;
 
     float seed_ox = (float)(w->seed % 100000);
     float seed_oy = (float)((w->seed / 100) % 100000);
 
+    size_t pre_count = w->entities.count;
+
     for (size_t y = y1; y < y2 && y < map->h; y++) {
         for (size_t x = x1; x < x2 && x < map->w; x++) {
             MapCell *cell = &map->cells[y][x];
+            if (cell->elevation != ELEV_NONE) continue;
 
-            if (cell->elevation == ELEV_NONE) {
-                float scale = 0.07f;
-                float raw_noise = snoise2((float)x * scale + seed_ox,
-                                          (float)y * scale + seed_oy);
-                float val = (raw_noise + 1.0f) * 0.5f;
+            float scale = 0.07f;
+            float raw_noise = snoise2((float)x * scale + seed_ox,
+                                      (float)y * scale + seed_oy);
+            float val = (raw_noise + 1.0f) * 0.5f;
 
-                if (val > 0.9f) {
-                    cell->elevation = ELEV_MOUNTAIN;
-                } else if (val > 0.85f) {
-                    cell->elevation = ELEV_HILL;
-                } else if (val > 0.4f) {
-                    cell->elevation = ELEV_GROUND;
-                } else if (val > 0.3f) {
-                    cell->elevation = ELEV_WATER;
-                } else {
-                    cell->elevation = ELEV_DEEP_WATER;
-                }
+            if (val > 0.9f) {
+                cell->elevation = ELEV_MOUNTAIN;
+            } else if (val > 0.85f) {
+                cell->elevation = ELEV_HILL;
+            } else if (val > 0.4f) {
+                cell->elevation = ELEV_GROUND;
+            } else if (val > 0.3f) {
+                cell->elevation = ELEV_WATER;
+            } else {
+                cell->elevation = ELEV_DEEP_WATER;
+            }
 
-                if (cell->elevation == ELEV_GROUND ||
-                    cell->elevation == ELEV_HILL) {
-                    uint32_t res_h = w->seed ^ ((uint32_t)x * 123456789U) ^
-                                     ((uint32_t)y * 987654321U);
+            if (cell->elevation != ELEV_GROUND &&
+                cell->elevation != ELEV_HILL) continue;
 
-                    uint32_t spawn_threshold =
-                        (cell->elevation == ELEV_HILL) ? 7U : 4U;
+            uint32_t res_h = w->seed ^ ((uint32_t)x * 123456789U) ^
+                             ((uint32_t)y * 987654321U);
 
-                    if ((res_h % 100) < spawn_threshold) {
-                        Entity animal = {
-                            .x = x,
-                            .y = y,
-                        };
+            uint32_t spawn_threshold =
+                (cell->elevation == ELEV_HILL) ? 7U : 4U;
 
-                        int pick = (res_h >> 8) % 3 + 2;
-                        animal.def = &ctx->entity_defs.items[pick];
-                        strncpy(animal.name, ctx->entity_defs.items[pick].name,
-                                sizeof(animal.name) - 1);
+            if ((res_h % 100) < spawn_threshold) {
+                Entity animal = {
+                    .x = x,
+                    .y = y,
+                };
 
-                        da_append(&w->entities, animal);
-                        // Assign after append; NOTE: cell->entity may be stale
-                        // if da_append reallocates again later. Safe here only
-                        // because we immediately move to the next cell.
-                        cell->entity = &w->entities.items[w->entities.count - 1];
-                    }
-                }
+                int pick = (res_h >> 8) % 3 + 2;
+                animal.def = &ctx->entity_defs.items[pick];
+                strncpy(animal.name, ctx->entity_defs.items[pick].name,
+                        sizeof(animal.name) - 1);
+
+                da_append(&w->entities, animal);
             }
         }
+    }
+
+    for (size_t i = pre_count; i < w->entities.count; ++i) {
+        Entity *e = &w->entities.items[i];
+        map->cells[e->y][e->x].entity = e;
     }
 }
 

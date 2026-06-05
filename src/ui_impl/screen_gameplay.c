@@ -59,6 +59,7 @@ void gameplay_deinit(CwTui *ctx) {
         g_win = NULL;
     }
     world_free(&ctx->core->current_world);
+    ctx->core->current_world = (World){0};
 
     g_need_redraw = true;
 }

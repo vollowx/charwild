@@ -89,7 +89,7 @@ defer:
 }
 
 SaveResult world_load(World *w, int slot, Cw *ctx) {
-    info("[save] loading to slot %d", slot);
+    info("[save] loading slot %d", slot);
     SaveResult ret = SAVE_OK;
     char *path = get_save_path(slot);
     FILE *fp = NULL;
@@ -104,8 +104,6 @@ SaveResult world_load(World *w, int slot, Cw *ctx) {
     if (!fp)
         do_defer_and_return(SAVE_ERR_OPEN);
 
-    // memset(&self->header, 0, sizeof(self->header));
-    clear_world(w);
     da_reserve(&w->entities, 512);
 
     while (fgets(raw, sizeof(raw), fp)) {
@@ -240,7 +238,7 @@ defer:
         fclose(fp);
     if (ret != SAVE_OK) {
         clear_world(w);
-        error("[save] failed to load save");
+        error("[save] failed to load save %d", slot);
     }
     return ret;
 }
