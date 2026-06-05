@@ -36,7 +36,7 @@ void rebuild_saves_menu(CwTui *ctx) {
     for (int i = 0; i < 3; i++) {
         char label[SAVES_WIDTH - 6];
 
-        previews[i] = get_slot_preview(i);
+        previews[i] = get_save_preview(i);
         snprintf(label, sizeof(label), "Slot %d: %33s", i,
                  previews[i].exists ? previews[i].header.player_name
                                     : "<Empty>");
@@ -113,7 +113,7 @@ void saves_input(CwTui *ctx) {
         } else {
             World world = {0};
             world_init(&world, ctx->core);
-            save_save(&world, slot);
+            world_save(&world, slot);
             world_free(&world);
 
             rebuild_saves_menu(ctx);
@@ -146,9 +146,9 @@ void saves_input(CwTui *ctx) {
 
         if (strlen(new_name) > 0) {
             World world = {0};
-            if (save_load(&world, slot, ctx->core) == SAVE_OK) {
+            if (world_load(&world, slot, ctx->core) == SAVE_OK) {
                 strcpy(world.player->name, new_name);
-                if (save_save(&world, slot) == SAVE_OK) {
+                if (world_save(&world, slot) == SAVE_OK) {
                     info("[save] Renamed slot %d to %s", slot, new_name);
                 } else {
                     error("[save] Failed to rename slot saving save");

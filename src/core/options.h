@@ -7,6 +7,7 @@ typedef struct {
     int log_level;
     bool save_log;
     bool show_log;
+    unsigned short fps;
 } CwOptions;
 
 void options_load(CwOptions *opts, const char *path);

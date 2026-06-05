@@ -36,11 +36,10 @@ typedef struct {
     bool exists;
 } SavePreview;
 
-SaveResult save_load(World *w, int slot, Cw *ctx);
-SaveResult save_save(const World *w, int slot);
+SaveResult world_load(World *w, int slot, Cw *ctx);
+SaveResult world_save(const World *w, int slot);
 SaveResult save_delete(int slot);
-void save_init(Save *save);
 
-SavePreview get_slot_preview(int slot);
+SavePreview get_save_preview(int slot);
 
 #endif

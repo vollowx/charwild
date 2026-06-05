@@ -156,7 +156,7 @@ void world_init(World *w, Cw *ctx) {
 }
 
 void world_free(World *w) {
-    assert(w);
+    assert(w && "Double free");
 
     map_free(w->map);
     w->map = NULL;

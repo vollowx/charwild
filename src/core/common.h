@@ -31,7 +31,9 @@
 #include "core/options.h"
 #include "ui/fcp.h"
 
-#define CW_OPTIONS_PATH "options.txt"
+#define CW_DEFINITIONS_PATH "definitions.txt"
+#define CW_OPTIONS_PATH     "options.txt"
+#define CW_SAVES_PATH       "save%d.txt"
 #define CW_FPS 60
 #define CW_VERSION_MAJOR 0
 #define CW_VERSION_MINOR 0

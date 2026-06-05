@@ -3,18 +3,17 @@
 #include <string.h>
 #include <time.h>
 
-#include "core/context.h"
+#include "core/save.h"
 #include "core/common.h"
+#include "core/context.h"
 #include "core/log.h"
 #include "core/world_defs.h"
-#include "core/save.h"
+
+char save_path[128] = {0};
 
 static char *get_save_path(int slot) {
-    char *buf = malloc(128);
-    if (!buf)
-        return NULL;
-    snprintf(buf, 128, "%d.cwsave", slot);
-    return buf;
+    snprintf(save_path, 128, CW_SAVES_PATH, slot);
+    return save_path;
 }
 
 static void clear_world(World *w) {
@@ -26,14 +25,14 @@ static void copy_name(char *dst, size_t n, const char *src) {
     snprintf(dst, n, "%s", src ? src : "");
 }
 
-SaveResult save_save(const World *self, int slot) {
+SaveResult world_save(const World *w, int slot) {
     info("[save] saving slot %d", slot);
 
     SaveResult ret = SAVE_OK;
     char *path = get_save_path(slot);
     FILE *fp = NULL;
 
-    if (!self || !self->map || !path)
+    if (!w || !w->map || !path)
         return SAVE_ERR_WRITE;
 
     fp = fopen(path, "w");
@@ -46,21 +45,21 @@ SaveResult save_save(const World *self, int slot) {
     // fprintf(fp, "player_name = %s\n\n", self->header.player_name);
 
     fprintf(fp, "@world\n");
-    fprintf(fp, "seed = %u\n", self->seed);
+    fprintf(fp, "seed = %u\n", w->seed);
     // fprintf(fp, "timestamp = %u\n\n", self->header.timestamp);
 
-    fprintf(fp, "@map %zu %zu\n", self->map->w, self->map->h);
-    for (size_t y = 0; y < self->map->h; ++y) {
+    fprintf(fp, "@map %zu %zu\n", w->map->w, w->map->h);
+    for (size_t y = 0; y < w->map->h; ++y) {
         fprintf(fp, "@row");
-        for (size_t x = 0; x < self->map->w; ++x)
-            fprintf(fp, " %d", self->map->cells[y][x].elevation);
+        for (size_t x = 0; x < w->map->w; ++x)
+            fprintf(fp, " %d", w->map->cells[y][x].elevation);
         fputc('\n', fp);
     }
     fputc('\n', fp);
 
-    for (size_t y = 0; y < self->map->h; ++y) {
-        for (size_t x = 0; x < self->map->w; ++x) {
-            MapCell *cell = &self->map->cells[y][x];
+    for (size_t y = 0; y < w->map->h; ++y) {
+        for (size_t x = 0; x < w->map->w; ++x) {
+            MapCell *cell = &w->map->cells[y][x];
             if (!cell->object_id)
                 continue;
             fprintf(fp, "@object %u %zu %zu %d\n", cell->object_id, x, y,
@@ -68,7 +67,7 @@ SaveResult save_save(const World *self, int slot) {
         }
     }
 
-    da_foreach(Entity, ent, &self->entities) {
+    da_foreach(Entity, ent, &w->entities) {
         assert(ent && ent->def);
 
         fprintf(fp, "@entity %u %zu %zu %d %s\n", ent->def->id, ent->x, ent->y,
@@ -86,11 +85,10 @@ SaveResult save_save(const World *self, int slot) {
 defer:
     if (fp)
         fclose(fp);
-    free(path);
     return ret;
 }
 
-SaveResult save_load(World *self, int slot, Cw *ctx) {
+SaveResult world_load(World *w, int slot, Cw *ctx) {
     info("[save] loading to slot %d", slot);
     SaveResult ret = SAVE_OK;
     char *path = get_save_path(slot);
@@ -99,7 +97,7 @@ SaveResult save_load(World *self, int slot, Cw *ctx) {
     size_t row = 0;
     Entity *cur_ent = NULL;
 
-    if (!self || !path)
+    if (!w || !path)
         return SAVE_ERR_READ;
 
     fp = fopen(path, "r");
@@ -107,8 +105,8 @@ SaveResult save_load(World *self, int slot, Cw *ctx) {
         do_defer_and_return(SAVE_ERR_OPEN);
 
     // memset(&self->header, 0, sizeof(self->header));
-    clear_world(self);
-    da_reserve(&self->entities, 512);
+    clear_world(w);
+    da_reserve(&w->entities, 512);
 
     while (fgets(raw, sizeof(raw), fp)) {
         char *line = cw_trim(raw);
@@ -125,24 +123,24 @@ SaveResult save_load(World *self, int slot, Cw *ctx) {
             // copy_name(self->header.player_name,
             //           sizeof(self->header.player_name), cw_trim(line + 13));
         } else if (strncmp(line, "seed =", 6) == 0) {
-            self->seed = (uint32_t)strtoul(cw_trim(line + 6), NULL, 10);
+            w->seed = (uint32_t)strtoul(cw_trim(line + 6), NULL, 10);
         } else if (strncmp(line, "timestamp =", 11) == 0) {
             // self->header.timestamp =
             //     (uint32_t)strtoul(cw_trim(line + 11), NULL, 10);
         } else if (strncmp(line, "@map ", 5) == 0) {
-            size_t w = 0, h = 0;
-            if (sscanf(line, "@map %zu %zu", &w, &h) != 2 || !w || !h)
+            size_t width = 0, height = 0;
+            if (sscanf(line, "@map %zu %zu", &width, &height) != 2 || !width || !height)
                 do_defer_and_return(SAVE_ERR_READ);
-            self->map = map_alloc(h, w);
-            if (!self->map)
+            w->map = map_alloc(height, width);
+            if (!w->map)
                 do_defer_and_return(SAVE_ERR_READ);
             row = 0;
         } else if (strncmp(line, "@row", 4) == 0) {
-            if (!self->map || row >= self->map->h)
+            if (!w->map || row >= w->map->h)
                 do_defer_and_return(SAVE_ERR_READ);
 
             char *p = line + 4;
-            for (size_t x = 0; x < self->map->w; ++x) {
+            for (size_t x = 0; x < w->map->w; ++x) {
                 char *end;
                 long v;
 
@@ -152,7 +150,7 @@ SaveResult save_load(World *self, int slot, Cw *ctx) {
                 if (p == end)
                     do_defer_and_return(SAVE_ERR_READ);
 
-                self->map->cells[row][x].elevation = (Elevation)v;
+                w->map->cells[row][x].elevation = (Elevation)v;
                 p = end;
             }
             row++;
@@ -161,14 +159,14 @@ SaveResult save_load(World *self, int slot, Cw *ctx) {
             size_t x = 0, y = 0;
             int hp = 0;
 
-            if (!self->map ||
+            if (!w->map ||
                 sscanf(line, "@object %u %zu %zu %d", &def, &x, &y, &hp) != 4)
                 do_defer_and_return(SAVE_ERR_READ);
-            if (x >= self->map->w || y >= self->map->h)
+            if (x >= w->map->w || y >= w->map->h)
                 do_defer_and_return(SAVE_ERR_READ);
 
-            self->map->cells[y][x].object_id = (uint16_t)def;
-            self->map->cells[y][x].object_health = hp;
+            w->map->cells[y][x].object_id = (uint16_t)def;
+            w->map->cells[y][x].object_health = hp;
         } else if (strncmp(line, "@entity ", 8) == 0) {
             unsigned int def_id = 0;
             size_t x = 0, y = 0;
@@ -190,8 +188,8 @@ SaveResult save_load(World *self, int slot, Cw *ctx) {
             if (strcmp(name, "0") != 0)
                 copy_name(new_ent.name, sizeof(new_ent.name), name);
 
-            da_append(&self->entities, new_ent);
-            cur_ent = &self->entities.items[self->entities.count - 1];
+            da_append(&w->entities, new_ent);
+            cur_ent = &w->entities.items[w->entities.count - 1];
         } else if (strncmp(line, "+ ", 2) == 0) {
             // TODO: To be redone
             //
@@ -223,28 +221,27 @@ SaveResult save_load(World *self, int slot, Cw *ctx) {
 
     // if (self->header.version != SAVE_VERSION)
     //     do_defer_and_return(SAVE_ERR_VERSION);
-    if (!self->map || row != self->map->h)
+    if (!w->map || row != w->map->h)
         do_defer_and_return(SAVE_ERR_READ);
 
-    self->player = NULL;
-    for (size_t i = 0; i < self->entities.count; ++i) {
-        Entity *ent = &self->entities.items[i];
-        if (ent->x >= self->map->w || ent->y >= self->map->h)
+    w->player = NULL;
+    for (size_t i = 0; i < w->entities.count; ++i) {
+        Entity *ent = &w->entities.items[i];
+        if (ent->x >= w->map->w || ent->y >= w->map->h)
             do_defer_and_return(SAVE_ERR_READ);
 
-        self->map->cells[ent->y][ent->x].entity = ent;
+        w->map->cells[ent->y][ent->x].entity = ent;
         if (ent->def->type == ENTITY_PLAYER)
-            self->player = ent;
+            w->player = ent;
     }
 
 defer:
     if (fp)
         fclose(fp);
     if (ret != SAVE_OK) {
-        clear_world(self);
+        clear_world(w);
         error("[save] failed to load save");
     }
-    free(path);
     return ret;
 }
 
@@ -257,20 +254,10 @@ SaveResult save_delete(int slot) {
     if (remove(path) != 0)
         ret = SAVE_ERR_WRITE;
 
-    free(path);
     return ret;
 }
 
-void save_init(Save *self) {
-    if (!self)
-        return;
-    self->header.slot = 0;
-    self->header.version = SAVE_VERSION;
-    self->header.timestamp = (uint32_t)time(NULL);
-    self->header.player_name[0] = '\0';
-}
-
-SavePreview get_slot_preview(int slot) {
+SavePreview get_save_preview(int slot) {
     SavePreview p = {0};
     char *path = get_save_path(slot);
     FILE *fp = NULL;
@@ -281,7 +268,6 @@ SavePreview get_slot_preview(int slot) {
 
     fp = fopen(path, "r");
     if (!fp) {
-        free(path);
         return p;
     }
 
@@ -304,6 +290,5 @@ SavePreview get_slot_preview(int slot) {
     p.exists = p.header.version != 0;
 
     fclose(fp);
-    free(path);
     return p;
 }

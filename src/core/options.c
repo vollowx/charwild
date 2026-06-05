@@ -22,10 +22,12 @@ void options_load(CwOptions *opts, const char *path) {
             opts->save_log = (bool)val;
         else if (strcmp(key, "show_log") == 0)
             opts->show_log = (bool)val;
+        else if (strcmp(key, "fps") == 0)
+            opts->fps = (unsigned short)val;
     }
     fclose(fp);
 
-    info("[options] options loaded from %s", path);
+    info("[options] loaded from %s", path);
 }
 
 bool options_save(CwOptions *opts, const char *path) {
@@ -33,12 +35,13 @@ bool options_save(CwOptions *opts, const char *path) {
     FILE *fp = fopen(path, "w");
     if (!fp)
         do_defer_and_return(false);
-    fprintf(fp, "log_level=%d\n", opts->log_level);
+    fprintf(fp, "log_level=%d\n",      opts->log_level);
     fprintf(fp, "save_log=%d\n", (int)opts->save_log);
     fprintf(fp, "show_log=%d\n", (int)opts->show_log);
+    fprintf(fp, "fps=%d\n",      opts->fps);
 
 defer:
     if (fp)  fclose(fp);
-    if (ret) info("[options] options wrote to %s", path);
+    if (ret) info("[options] saved to %s", path);
     return ret;
 }

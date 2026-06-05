@@ -42,7 +42,7 @@ void gameplay_init(CwTui *ctx) {
         }
     }
 
-    if (save_load(&ctx->core->current_world, ctx->core->current_slot, ctx->core) != SAVE_OK) {
+    if (world_load(&ctx->core->current_world, ctx->core->current_slot, ctx->core) != SAVE_OK) {
         ctx->next_state = TUI_STATE_MAIN_MENU;
         return;
     }

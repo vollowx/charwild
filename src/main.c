@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     fcp_init();
 
     definitions_load(
-        "base.cwdef",
+        CW_DEFINITIONS_PATH,
         &ctx.core->item_defs,
         &ctx.core->entity_defs,
         &ctx.core->object_defs
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
         log_frame(&ctx);
 
         doupdate();
-        napms(1000 / CW_FPS);
+        napms(1000 / core_ctx.options.fps);
     }
 
     ctx.cur_screen->deinit(&ctx);
