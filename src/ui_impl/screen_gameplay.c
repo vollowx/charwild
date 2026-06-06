@@ -2,6 +2,7 @@
 
 #include "core/log.h"
 #include "core/save.h"
+#include "core/common.h"
 #include "core/world_defs.h"
 #include "ui/fcp.h"
 #include "ui/tui_context.h"
@@ -30,7 +31,7 @@ WINDOW *g_win = NULL;
 bool g_need_redraw = true;
 
 void gameplay_init(CwTui *ctx) {
-    info("[model] screen = gameplay");
+    info("[tui] screen = gameplay");
 
     static bool first_run = true;
     if (first_run) {
@@ -52,15 +53,16 @@ void gameplay_init(CwTui *ctx) {
 }
 
 void gameplay_deinit(CwTui *ctx) {
+    world_save(&ctx->core->current_world, ctx->core->current_slot);
+    world_free(&ctx->core->current_world);
+    ctx->core->current_world = (World){0};
+
     werase(g_win);
     wnoutrefresh(g_win);
     if (g_win) {
         delwin(g_win);
         g_win = NULL;
     }
-    world_free(&ctx->core->current_world);
-    ctx->core->current_world = (World){0};
-
     g_need_redraw = true;
 }
 
@@ -137,7 +139,7 @@ void gameplay_input(CwTui *ctx) {
 
 void gameplay_frame(CwTui *ctx) {
     static double tick_accumulator = 0;
-    const double tick_rate = 1.0 / 20.0;
+    const double tick_rate = 1.0 / CW_TPS;
 
     tick_accumulator += ctx->frame_time;
     while (tick_accumulator >= tick_rate) {

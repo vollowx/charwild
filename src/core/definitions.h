@@ -1,5 +1,7 @@
-#ifndef WORLD_DEFS_H
-#define WORLD_DEFS_H
+// World definitions loading and querying
+
+#ifndef DEFINITIONS_H
+#define DEFINITIONS_H
 
 #include <stdint.h>
 
@@ -83,4 +85,4 @@ ItemDef     *item_def_lookup(  ItemDefs defs, uint16_t id);
 EntityDef *entity_def_lookup(EntityDefs defs, uint16_t id);
 ObjectDef *object_def_lookup(ObjectDefs defs, uint16_t id);
 
-#endif // WORLD_DEFS_H
+#endif // DEFINITIONS_H

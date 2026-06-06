@@ -4,9 +4,9 @@
 #include <ncurses.h>
 #include <simplexnoise1234.h>
 
+#include "core/world.h"
 #include "core/context.h"
 #include "core/common.h"
-#include "core/world.h"
 
 bool entity_move(Entity *e, Map *map, int dx, int dy) {
     if (!e || !map)
@@ -66,8 +66,8 @@ bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
     return true;
 }
 
+// Returns `NULL` when failing on allocations.
 Map *map_alloc(size_t height, size_t width) {
-    // 1. Allocate the Map container
     Map *map = malloc(sizeof(Map));
     if (!map)
         return NULL;
@@ -75,17 +75,13 @@ Map *map_alloc(size_t height, size_t width) {
     map->w = width;
     map->h = height;
 
-    // 2. Allocate the array of row pointers
     map->cells = malloc(sizeof(MapCell *) * height);
     if (!map->cells) {
         free(map);
         return NULL;
     }
 
-    // 3. Allocate each row
     for (size_t y = 0; y < height; ++y) {
-        // Use calloc to automatically zero out all members (Elevation 0, NULL
-        // pointers)
         map->cells[y] = calloc(width, sizeof(MapCell));
 
         if (!map->cells[y]) {
@@ -114,7 +110,7 @@ void map_free(Map *map) {
 
 // TASK(20260223-173936): Chunk-ize game both in struct and file
 void world_init(World *w, Cw *ctx) {
-    w->map = map_alloc(2048, 2048);
+    w->map = map_alloc(512, 512);
 
     w->entities.items = NULL;
     w->entities.count = 0;
@@ -136,7 +132,7 @@ void world_init(World *w, Cw *ctx) {
     srand((unsigned int)time(NULL));
     w->seed = ((uint32_t)rand() << 16) | (uint32_t)rand();
 
-    size_t py = 1024, px = 1024, y_offset = 0;
+    size_t py = 256, px = 256, y_offset = 0;
     world_gen_area(w, py - 256, px - 256, py + 256, px + 256, ctx);
 
     w->player = &w->entities.items[0];
@@ -164,7 +160,6 @@ void world_free(World *w) {
 
 void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ctx) {
     assert(w && w->map);
-
     Map *map = w->map;
 
     float seed_ox = (float)(w->seed % 100000);
@@ -211,8 +206,8 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ct
 
                 int pick = (res_h >> 8) % 3 + 2;
                 animal.def = &ctx->entity_defs.items[pick];
-                strncpy(animal.name, ctx->entity_defs.items[pick].name,
-                        sizeof(animal.name) - 1);
+                // TODO: Reconsider entity naming strategy, currently none mean
+                //       the default
 
                 da_append(&w->entities, animal);
             }
@@ -227,13 +222,6 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ct
 
 bool world_tick(World *w, double dt) {
     bool updated = false;
-
-    // What a typhoon
-    // da_foreach(Entity *, e, &game->entities) {
-    //   if (entity_move(*e, game->map, 1, 0)) {
-    //     updated = true;
-    //   }
-    // }
 
     return updated;
 }

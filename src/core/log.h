@@ -18,7 +18,7 @@ typedef enum {
 
 typedef struct {
     LogLevel level;
-    const char *msg;
+    char *msg;
 } Log;
 
 typedef struct {

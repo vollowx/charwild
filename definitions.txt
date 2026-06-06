@@ -1,43 +1,36 @@
-// Lines start with "//" are ignored.
+// Definitions
+// key : id fields...
 
-// @resource, @placeable, @consumable, @equipment are for items.
-// @player, @animal are for entities
+[items]
+// resource   : id  max_stack  symbol  fg      bg    name
+// consumable : id  max_stack  symbol  fg      bg    name
+// equipment  : id  max_dur    symbol  fg      bg    name
+// placeable  : id  max_stack  symbol  fg      bg    name
+resource   :     0  64  cO  yellow  none  Copper Ore
 
-// Syntax
-// @resource   id max_stack           symbol fg bg name
-// @placeable  id max_stack           symbol fg bg name
-// @consumable id max_stack           symbol fg bg name
-// @equipment  id max_durability      symbol fg bg name
-// @player     id max_health passable symbol fg bg name
-// @animal     id max_health passable symbol fg bg name
-// @object     id max_health passable symbol fg bg name
+consumable : 20000  24  aO  red     none  Apple
+consumable : 20001  24  ()  yellow  none  Orange
+consumable : 20002  24  \o  yellow  none  Berry
 
-@resource   0       64 cO yellow none Copper Ore
+equipment  : 30000   0  A\  yellow  none  Copper Axe
+equipment  : 30001   0  A\  white   none  Iron Axe
+equipment  : 30002   0  A\  yellow  none  Gold Axe
 
-@consumable 20000   24 aO red    none Apple
-@consumable 20001   24 () yellow none Orange
-@consumable 20002   24 \o yellow none Berry
+placeable  : 10000  64  ##  white   red   Brick
 
-@equipment  30000    0 A\ yellow none Copper Axe
-@equipment  30001    0 A\ white  none Iron Axe
-@equipment  30002    0 A\ yellow none Gold Axe
+[entities]
+// player : id  max_health  passable  symbol  fg      bg    name
+// animal : id  max_health  passable  symbol  fg      bg    name
+player :     0  100  0  \@  red     none  You!
+animal :     1   20  0  Uo  black   none  Cow
+animal :     2   20  0  qp  red     none  Pig
+animal :     3   20  0  wm  white   none  Sheep
+animal :     4   25  0  Wm  white   none  Goat
+animal :     5   15  0  ^C  yellow  none  Chicken
 
-@placeable  10000   64 ## white  red  Brick
-
-///
-
-@player        0   100 0 \@ red    none You!
-@animal        1    20 0 Uo black  none Cow
-@animal        2    20 0 qp red    none Pig
-@animal        3    20 0 wm white  none Sheep
-@animal        4    25 0 Wm white  none Goat
-@animal        5    15 0 ^C yellow none Chicken
-
-///
-
-// TASK(20260227-172726): Add reverse option to get the real black color from the terminal
-
-@object     1  1 1 ## black yellow Wood Bridge
-@object     2  5 0 OO black white  Stone Boulder
-@object     3 10 0 && black white  Furnace
-@object 10000 15 0 ## black red    Brick
+[objects]
+// object : id  max_health  passable  symbol  fg      bg      name
+object :     1    1  1  ##  black  yellow  Wood Bridge
+object :     2    5  0  OO  black  white   Stone Boulder
+object :     3   10  0  &&  black  white   Furnace
+object : 10000   15  0  ##  black  red     Brick

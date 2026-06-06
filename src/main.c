@@ -3,13 +3,14 @@
 #include "core/common.h"
 #include "core/log.h"
 #include "core/options.h"
-#include "core/world_defs.h"
+#include "core/definitions.h"
 #include "ui/fcp.h"
 #include "ui/tui_context.h"
 
 int main(int argc, char *argv[]) {
     Cw core_ctx = {
         .options = {
+            .fps = 60,
             .log_level = 0,
             .show_log = true,
         },
@@ -89,11 +90,13 @@ int main(int argc, char *argv[]) {
     log_deinit(&ctx);
     endwin();
 
-    free_logs();
+    if (0) {
+        free_logs();
 
-    da_free(core_ctx.item_defs);
-    da_free(core_ctx.entity_defs);
-    da_free(core_ctx.object_defs);
+        da_free(core_ctx.item_defs);
+        da_free(core_ctx.entity_defs);
+        da_free(core_ctx.object_defs);
+    }
 
     return 0;
 }

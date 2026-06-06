@@ -7,78 +7,67 @@
 #include "core/common.h"
 #include "core/context.h"
 #include "core/log.h"
-#include "core/world_defs.h"
+#include "core/definitions.h"
 
-char save_path[128] = {0};
+static char save_path[128];
 
-static char *get_save_path(int slot) {
-    snprintf(save_path, 128, CW_SAVES_PATH, slot);
+static const char *get_save_path(int slot) {
+    snprintf(save_path, sizeof(save_path), CW_SAVES_PATH, slot);
     return save_path;
-}
-
-static void clear_world(World *w) {
-    world_free(w);
-    memset(w, 0, sizeof(*w));
-}
-
-static void copy_name(char *dst, size_t n, const char *src) {
-    snprintf(dst, n, "%s", src ? src : "");
 }
 
 SaveResult world_save(const World *w, int slot) {
     info("[save] saving slot %d", slot);
 
+    assert(w && w->map && w->player);
+
     SaveResult ret = SAVE_OK;
-    char *path = get_save_path(slot);
-    FILE *fp = NULL;
-
-    if (!w || !w->map || !path)
-        return SAVE_ERR_WRITE;
-
-    fp = fopen(path, "w");
+    FILE *fp = fopen(get_save_path(slot), "w");
     if (!fp)
         do_defer_and_return(SAVE_ERR_OPEN);
 
-    fprintf(fp, "@header\n");
-    fprintf(fp, "slot = %d\n", slot);
-    // fprintf(fp, "version = %u\n", self->header.version);
-    // fprintf(fp, "player_name = %s\n\n", self->header.player_name);
+    fprintf(fp, "[header]\n");
+    fprintf(fp, "version = %d\n",  SAVE_VERSION);
+    fprintf(fp, "slot    = %d\n",  slot);
+    fprintf(fp, "player  = %s\n",  w->player->name[0] ? w->player->name : "0");
 
-    fprintf(fp, "@world\n");
+    fprintf(fp, "\n[world]\n");
     fprintf(fp, "seed = %u\n", w->seed);
-    // fprintf(fp, "timestamp = %u\n\n", self->header.timestamp);
 
-    fprintf(fp, "@map %zu %zu\n", w->map->w, w->map->h);
+    fprintf(fp, "\n[map]\n");
+    fprintf(fp, "width  = %zu\n", w->map->w);
+    fprintf(fp, "height = %zu\n", w->map->h);
     for (size_t y = 0; y < w->map->h; ++y) {
-        fprintf(fp, "@row");
+        fprintf(fp, "row :");
         for (size_t x = 0; x < w->map->w; ++x)
             fprintf(fp, " %d", w->map->cells[y][x].elevation);
         fputc('\n', fp);
     }
-    fputc('\n', fp);
 
+    fprintf(fp, "\n[objects]\n");
     for (size_t y = 0; y < w->map->h; ++y) {
         for (size_t x = 0; x < w->map->w; ++x) {
             MapCell *cell = &w->map->cells[y][x];
             if (!cell->object_id)
                 continue;
-            fprintf(fp, "@object %u %zu %zu %d\n", cell->object_id, x, y,
-                    cell->object_health);
+            fprintf(fp, "object : %u %zu %zu %d\n",
+                    cell->object_id, x, y, cell->object_health);
         }
     }
 
+    fprintf(fp, "\n[entities]\n");
     da_foreach(Entity, ent, &w->entities) {
         assert(ent && ent->def);
-
-        fprintf(fp, "@entity %u %zu %zu %d %s\n", ent->def->id, ent->x, ent->y,
-                ent->health, ent->name[0] ? ent->name : "0");
-
+        fprintf(fp, "entity : %u %zu %zu %d %s\n",
+                ent->def->id, ent->x, ent->y, ent->health,
+                ent->name[0] ? ent->name : "0");
         da_foreach(ItemStack, item, &ent->inventory) {
             if (item->def->id >= 30000)
-                fprintf(fp, "+ %u %d %d\n", item->def->id, item->quantity,
-                        item->durability);
+                fprintf(fp, "entity + %u %d %d\n",
+                        item->def->id, item->quantity, item->durability);
             else
-                fprintf(fp, "+ %u %d\n", item->def->id, item->quantity);
+                fprintf(fp, "entity + %u %d\n",
+                        item->def->id, item->quantity);
         }
     }
 
@@ -90,135 +79,90 @@ defer:
 
 SaveResult world_load(World *w, int slot, Cw *ctx) {
     info("[save] loading slot %d", slot);
-    SaveResult ret = SAVE_OK;
-    char *path = get_save_path(slot);
-    FILE *fp = NULL;
-    char raw[8192];
-    size_t row = 0;
-    Entity *cur_ent = NULL;
-
-    if (!w || !path)
-        return SAVE_ERR_READ;
-
-    fp = fopen(path, "r");
+    assert(w && ctx);
+    SaveResult ret  = SAVE_OK;
+    FILE *fp = fopen(get_save_path(slot), "r");
     if (!fp)
         do_defer_and_return(SAVE_ERR_OPEN);
 
     da_reserve(&w->entities, 512);
 
-    while (fgets(raw, sizeof(raw), fp)) {
-        char *line = cw_trim(raw);
-        if (cw_is_ignored_line(line))
+    char   buf[8192];
+    CwLine line;
+    char   section[64] = {0};
+    size_t map_w = 0, map_h = 0, row = 0;
+    Entity *current_entity = NULL;
+
+    while (cw_next_line(fp, buf, sizeof(buf), &line)) {
+        if (line.kind == CW_LINE_SECTION) {
+            sv_to_buf(line.tag, section, sizeof(section));
             continue;
+        }
 
-        if (strcmp(line, "@header") == 0 || strcmp(line, "@world") == 0) {
-            continue;
-        } else if (strncmp(line, "slot =", 6) == 0) {
-            // self->header.slot = atoi(cw_trim(line + 6));
-        } else if (strncmp(line, "version =", 9) == 0) {
-            // self->header.version = (uint32_t)strtoul(cw_trim(line + 9), NULL, 10);
-        } else if (strncmp(line, "player_name =", 13) == 0) {
-            // copy_name(self->header.player_name,
-            //           sizeof(self->header.player_name), cw_trim(line + 13));
-        } else if (strncmp(line, "seed =", 6) == 0) {
-            w->seed = (uint32_t)strtoul(cw_trim(line + 6), NULL, 10);
-        } else if (strncmp(line, "timestamp =", 11) == 0) {
-            // self->header.timestamp =
-            //     (uint32_t)strtoul(cw_trim(line + 11), NULL, 10);
-        } else if (strncmp(line, "@map ", 5) == 0) {
-            size_t width = 0, height = 0;
-            if (sscanf(line, "@map %zu %zu", &width, &height) != 2 || !width || !height)
-                do_defer_and_return(SAVE_ERR_READ);
-            w->map = map_alloc(height, width);
-            if (!w->map)
-                do_defer_and_return(SAVE_ERR_READ);
-            row = 0;
-        } else if (strncmp(line, "@row", 4) == 0) {
-            if (!w->map || row >= w->map->h)
-                do_defer_and_return(SAVE_ERR_READ);
+        if (strcmp(section, "world") == 0) {
+            if (line.kind == CW_LINE_KV && sv_eq_cstr(line.tag, "seed"))
+                w->seed = (uint32_t)sv_to_ulong(line.val);
 
-            char *p = line + 4;
-            for (size_t x = 0; x < w->map->w; ++x) {
-                char *end;
-                long v;
-
-                while (*p == ' ' || *p == '\t')
-                    ++p;
-                v = strtol(p, &end, 10);
-                if (p == end)
+        } else if (strcmp(section, "map") == 0) {
+            if (line.kind == CW_LINE_KV) {
+                if      (sv_eq_cstr(line.tag, "width"))  map_w = (size_t)sv_to_ulong(line.val);
+                else if (sv_eq_cstr(line.tag, "height")) map_h = (size_t)sv_to_ulong(line.val);
+                if (map_w && map_h && !w->map) {
+                    w->map = map_alloc(map_h, map_w);
+                    if (!w->map)
+                        do_defer_and_return(SAVE_ERR_READ);
+                }
+            } else if (line.kind == CW_LINE_STRUCT && sv_eq_cstr(line.tag, "row")) {
+                if (!w->map || row >= w->map->h)
                     do_defer_and_return(SAVE_ERR_READ);
-
-                w->map->cells[row][x].elevation = (Elevation)v;
-                p = end;
+                const char *p = line.val.ptr;
+                for (size_t x = 0; x < w->map->w; ++x) {
+                    char *end;
+                    long v = strtol(p, &end, 10);
+                    if (p == end)
+                        do_defer_and_return(SAVE_ERR_READ);
+                    w->map->cells[row][x].elevation = (Elevation)v;
+                    p = end;
+                }
+                row++;
             }
-            row++;
-        } else if (strncmp(line, "@object ", 8) == 0) {
-            unsigned int def = 0;
-            size_t x = 0, y = 0;
-            int hp = 0;
 
-            if (!w->map ||
-                sscanf(line, "@object %u %zu %zu %d", &def, &x, &y, &hp) != 4)
+        } else if (strcmp(section, "objects") == 0) {
+            if (line.kind != CW_LINE_STRUCT || !sv_eq_cstr(line.tag, "object"))
+                continue;
+            uint16_t def_id = 0;
+            uint64_t x = 0, y = 0;
+            int health = 0;
+            if (sscanf(line.val.ptr, "%hu %zu %zu %d", &def_id, &x, &y, &health) != 4)
                 do_defer_and_return(SAVE_ERR_READ);
-            if (x >= w->map->w || y >= w->map->h)
+            if (!w->map || x >= w->map->w || y >= w->map->h)
                 do_defer_and_return(SAVE_ERR_READ);
+            w->map->cells[y][x].object_id     = def_id;
+            w->map->cells[y][x].object_health = health;
 
-            w->map->cells[y][x].object_id = (uint16_t)def;
-            w->map->cells[y][x].object_health = hp;
-        } else if (strncmp(line, "@entity ", 8) == 0) {
-            unsigned int def_id = 0;
-            size_t x = 0, y = 0;
-            int hp = 0;
-            char name[64] = {0};
+        } else if (strcmp(section, "entities") == 0) {
+            if (line.kind == CW_LINE_STRUCT && sv_eq_cstr(line.tag, "entity")) {
+                Entity entity = {0};
+                uint16_t def_id = 0;
+                char name[32] = {0};
+                if (sscanf(line.val.ptr, "%hu %zu %zu %d %31[^\n]",
+                           &def_id, &entity.x, &entity.y, &entity.health, name) != 5)
+                    do_defer_and_return(SAVE_ERR_READ);
+                entity.def = entity_def_lookup(ctx->entity_defs, def_id);
+                if (!entity.def)
+                    do_defer_and_return(SAVE_ERR_READ);
+                if (strcmp(name, "0") != 0)
+                    snprintf(entity.name, sizeof(entity.name), "%s", name);
+                da_append(&w->entities, entity);
+                current_entity = &w->entities.items[w->entities.count - 1];
 
-            if (sscanf(line, "@entity %u %zu %zu %d %63[^\n]", &def_id, &x, &y,
-                       &hp, name) != 5)
-                do_defer_and_return(SAVE_ERR_READ);
-
-            Entity new_ent = {0};
-            new_ent.def = entity_def_lookup(ctx->entity_defs, def_id);
-            new_ent.x = x;
-            new_ent.y = y;
-            new_ent.health = hp;
-
-            if (!new_ent.def)
-                do_defer_and_return(SAVE_ERR_READ);
-            if (strcmp(name, "0") != 0)
-                copy_name(new_ent.name, sizeof(new_ent.name), name);
-
-            da_append(&w->entities, new_ent);
-            cur_ent = &w->entities.items[w->entities.count - 1];
-        } else if (strncmp(line, "+ ", 2) == 0) {
-            // TODO: To be redone
-            //
-            // unsigned int def_id = 0;
-            // int qty = 0, dur = 0;
-            // int n;
-            //
-            // if (!cur_ent)
-            //     do_defer_and_return(SAVE_ERR_READ);
-            //
-            // n = sscanf(line, "+ %u %d %d", &def_id, &qty, &dur);
-            // if (n < 2)
-            //     do_defer_and_return(SAVE_ERR_READ);
-            //
-            // ItemStack item = {0};
-            // item.def = item_def_lookup(ctx->item_defs, def_id);
-            // item.quantity = qty;
-            // if (n >= 3)
-            //     item.durability = dur;
-            //
-            // if (!item.def)
-            //     do_defer_and_return(SAVE_ERR_READ);
-            //
-            // da_append(&cur_ent->inventory, item);
-        } else {
-            do_defer_and_return(SAVE_ERR_READ);
+            } else if (line.kind == CW_LINE_APPEND && sv_eq_cstr(line.tag, "entity")) {
+                // TODO: inventory items
+                (void)current_entity;
+            }
         }
     }
 
-    // if (self->header.version != SAVE_VERSION)
-    //     do_defer_and_return(SAVE_ERR_VERSION);
     if (!w->map || row != w->map->h)
         do_defer_and_return(SAVE_ERR_READ);
 
@@ -227,7 +171,6 @@ SaveResult world_load(World *w, int slot, Cw *ctx) {
         Entity *ent = &w->entities.items[i];
         if (ent->x >= w->map->w || ent->y >= w->map->h)
             do_defer_and_return(SAVE_ERR_READ);
-
         w->map->cells[ent->y][ent->x].entity = ent;
         if (ent->def->type == ENTITY_PLAYER)
             w->player = ent;
@@ -237,56 +180,48 @@ defer:
     if (fp)
         fclose(fp);
     if (ret != SAVE_OK) {
-        clear_world(w);
-        error("[save] failed to load save %d", slot);
+        world_free(w);
+        memset(w, 0, sizeof(*w));
+        error("[save] failed to load slot %d", slot);
     }
     return ret;
 }
 
 SaveResult save_delete(int slot) {
-    char *path = get_save_path(slot);
-    SaveResult ret = SAVE_OK;
-
-    if (!path)
+    if (remove(get_save_path(slot)) != 0)
         return SAVE_ERR_WRITE;
-    if (remove(path) != 0)
-        ret = SAVE_ERR_WRITE;
-
-    return ret;
+    return SAVE_OK;
 }
 
-SavePreview get_save_preview(int slot) {
+SavePreview save_preview(int slot) {
     SavePreview p = {0};
-    char *path = get_save_path(slot);
-    FILE *fp = NULL;
-    char raw[256];
-
-    if (!path)
+    FILE *fp = fopen(get_save_path(slot), "r");
+    if (!fp)
         return p;
 
-    fp = fopen(path, "r");
-    if (!fp) {
-        return p;
-    }
+    char   buf[256];
+    CwLine line;
+    char   section[64] = {0};
 
-    while (fgets(raw, sizeof(raw), fp)) {
-        char *line = cw_trim(raw);
-        if (cw_is_ignored_line(line))
+    while (cw_next_line(fp, buf, sizeof(buf), &line)) {
+        if (line.kind == CW_LINE_SECTION) {
+            sv_to_buf(line.tag, section, sizeof(section));
+            if (strcmp(section, "header") != 0)
+                break; // past the header section, stop
             continue;
-
-        if (strncmp(line, "slot =", 6) == 0)
-            p.header.slot = atoi(cw_trim(line + 6));
-        else if (strncmp(line, "version =", 9) == 0)
-            p.header.version = (uint32_t)strtoul(cw_trim(line + 9), NULL, 10);
-        else if (strncmp(line, "player_name =", 13) == 0)
-            copy_name(p.header.player_name, sizeof(p.header.player_name),
-                      cw_trim(line + 13));
-        else if (line[0] == '@' && strcmp(line, "@header") != 0)
-            break;
+        }
+        if (strcmp(section, "header") != 0 || line.kind != CW_LINE_KV)
+            continue;
+        if (sv_eq_cstr(line.tag, "version"))
+            p.header.version = (uint32_t)sv_to_ulong(line.val);
+        else if (sv_eq_cstr(line.tag, "slot"))
+            p.header.slot = sv_to_int(line.val);
+        else if (sv_eq_cstr(line.tag, "player"))
+            sv_to_buf(line.val, p.header.player_name, sizeof(p.header.player_name));
     }
 
     p.exists = p.header.version != 0;
-
     fclose(fp);
     return p;
 }
+

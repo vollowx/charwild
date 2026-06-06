@@ -36,7 +36,7 @@ void rebuild_saves_menu(CwTui *ctx) {
     for (int i = 0; i < 3; i++) {
         char label[SAVES_WIDTH - 6];
 
-        previews[i] = get_save_preview(i);
+        previews[i] = save_preview(i);
         snprintf(label, sizeof(label), "Slot %d: %33s", i,
                  previews[i].exists ? previews[i].header.player_name
                                     : "<Empty>");
@@ -58,7 +58,7 @@ void rebuild_saves_menu(CwTui *ctx) {
 }
 
 void saves_init(CwTui *ctx) {
-    info("[model] screen = saves");
+    info("[tui] screen = saves");
 
     //                          gap
     int total_w = SAVES_WIDTH + 1 + PREVIEW_WIDTH;

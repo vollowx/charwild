@@ -14,7 +14,7 @@ MENU *m_menu;
 WINDOW *m_win;
 
 void main_menu_init(CwTui *ctx) {
-    info("[model] screen = main_menu");
+    info("[tui] screen = main_menu");
 
     char *labels[] = {
         "Start Game",

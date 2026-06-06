@@ -1,6 +1,7 @@
 CC=gcc
-#CFLAGS=-Wall -Wextra -Wpedantic -Wno-unused-parameter -Isrc -Ithirdparty
-CFLAGS=-Wall -Wextra -Wpedantic -Wno-unused-parameter -Isrc -Ithirdparty -fsanitize=address
+CFLAGS=-Wall -Wextra -Wpedantic -Wno-unused-parameter -O3 -Isrc -Ithirdparty
+# CFLAGS=-Wall -Wextra -Wpedantic -Wno-unused-parameter -Isrc -Ithirdparty
+# CFLAGS=-Wall -Wextra -Wpedantic -Wno-unused-parameter -Isrc -Ithirdparty -fsanitize=address
 LDFLAGS=-lncurses -lmenu
 
 TARGET=build/charwild

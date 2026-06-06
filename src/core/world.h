@@ -7,7 +7,7 @@
 
 #include <ncurses.h>
 
-#include "core/world_defs.h"
+#include "core/definitions.h"
 
 typedef struct Cw Cw;
 
@@ -44,7 +44,7 @@ typedef struct {
     EntityDef *def;
     char name[32];
     int health;
-    size_t x, y;
+    uint64_t x, y;
 
     ItemStacks inventory;
 } Entity;
@@ -63,7 +63,7 @@ typedef struct {
 } MapCell;
 
 typedef struct {
-    size_t w, h;
+    uint64_t w, h;
     MapCell **cells;
 } Map;
 
@@ -87,7 +87,5 @@ void world_free(World *);
 void world_init(World *, Cw *ctx);
 void world_gen_area(World *, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ctx);
 bool world_tick(World *, double dt);
-bool world_tick_animals(World *, double dt);
-bool world_tick_world(World *, double dt);
 
 #endif

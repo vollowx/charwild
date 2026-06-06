@@ -40,6 +40,6 @@ SaveResult world_load(World *w, int slot, Cw *ctx);
 SaveResult world_save(const World *w, int slot);
 SaveResult save_delete(int slot);
 
-SavePreview get_save_preview(int slot);
+SavePreview save_preview(int slot);
 
 #endif

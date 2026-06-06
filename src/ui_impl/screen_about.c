@@ -1,5 +1,6 @@
 #include "core/common.h"
 #include "core/log.h"
+#include "ui/fcp.h"
 #include "ui/tui_context.h"
 
 #define ABOUT_HEIGHT 9
@@ -8,7 +9,7 @@
 WINDOW *a_win;
 
 void about_init(CwTui *ctx) {
-    info("[model] screen = about");
+    info("[tui] screen = about");
 
     a_win = newwin(ABOUT_HEIGHT, ABOUT_WIDTH, (LINES - ABOUT_HEIGHT) / 2,
                    (COLS - ABOUT_WIDTH) / 2);

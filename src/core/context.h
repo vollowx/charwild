@@ -4,8 +4,8 @@
 #include <stdlib.h>
 
 #include "core/options.h"
+#include "core/definitions.h"
 #include "core/world.h"
-#include "core/world_defs.h"
 
 // charwild context
 struct Cw {

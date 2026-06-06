@@ -93,7 +93,7 @@ void rebuild_options_menu(CwTui *ctx) {
 }
 
 void options_init(CwTui *ctx) {
-    info("[model] screen = options");
+    info("[tui] screen = options");
 
     o_win = newwin(OPTIONS_HEIGHT, OPTIONS_WIDTH, (LINES - OPTIONS_HEIGHT) / 2,
                    (COLS - OPTIONS_WIDTH) / 2);

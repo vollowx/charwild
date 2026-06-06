@@ -8,7 +8,7 @@ WINDOW *l_win = NULL;
 static short log_cp[3];
 
 void log_init(CwTui *ctx) {
-    info("[model] overlay += log");
+    info("[tui] overlay += log");
 
     log_cp[LOG_INFO] = fcp_get(COLOR_BLUE, -1);
     log_cp[LOG_WARNING] = fcp_get(COLOR_YELLOW, -1);
