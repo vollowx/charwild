@@ -21,8 +21,6 @@
 // World ticks per second
 #define CW_TPS 20.0
 
-extern Logs logs;
-
 typedef enum {
     CW_LINE_SECTION, // [name]         ->  tag = "name"
     CW_LINE_KV,      // key = value    ->  tag = key,  val = trimmed value

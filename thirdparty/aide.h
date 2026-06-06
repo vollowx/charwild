@@ -1,10 +1,41 @@
+// aide - Public Domain
+// Helpers including dynamic array and string operations.
+
 #ifndef AIDE_H
 #define AIDE_H
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdlib.h>
 #include <string.h>
+
+#ifndef AIDEDEF
+#define AIDEDEF
+#endif
+
+#ifndef AIDE_ASSERT
+#include "assert.h"
+#define AIDE_ASSERT assert
+#endif
+
+#ifndef AIDE_REALLOC
+#include <stdlib.h>
+#define AIDE_REALLOC realloc
+#endif
+
+#ifndef AIDE_FREE
+#include <stdlib.h>
+#define AIDE_FREE free
+#endif
+
+#ifndef AIDE_DA_INIT_CAP
+#define AIDE_DA_INIT_CAP 256
+#endif
+
+#ifdef __cplusplus
+#define AIDE_DECLTYPE_CAST(T) (decltype(T))
+#else
+#define AIDE_DECLTYPE_CAST(T)
+#endif // __cplusplus
 
 #define UNUSED (void)
 
@@ -14,24 +45,18 @@
         goto defer;                                                            \
     } while (0)
 
-#define NOB_REALLOC realloc
-#define NOB_FREE free
-#define NOB_ASSERT assert
-#define NOB_DA_INIT_CAP 128
-#define NOB_DECLTYPE_CAST(x)
-
 #define da_reserve(da, expected_capacity)                                      \
     do {                                                                       \
         if ((expected_capacity) > (da)->capacity) {                            \
             if ((da)->capacity == 0) {                                         \
-                (da)->capacity = NOB_DA_INIT_CAP;                              \
+                (da)->capacity = AIDE_DA_INIT_CAP;                             \
             }                                                                  \
             while ((expected_capacity) > (da)->capacity) {                     \
                 (da)->capacity *= 2;                                           \
             }                                                                  \
-            (da)->items = NOB_DECLTYPE_CAST((da)->items) NOB_REALLOC(          \
+            (da)->items = AIDE_DECLTYPE_CAST((da)->items) AIDE_REALLOC(        \
                 (da)->items, (da)->capacity * sizeof(*(da)->items));           \
-            NOB_ASSERT((da)->items != NULL && "Buy more RAM lol");             \
+            AIDE_ASSERT((da)->items != NULL && "da_reserve: out of memory");   \
         }                                                                      \
     } while (0)
 
@@ -42,7 +67,7 @@
         (da)->items[(da)->count++] = (item);                                   \
     } while (0)
 
-#define da_free(da) NOB_FREE((da).items)
+#define da_free(da) AIDE_FREE((da).items)
 
 // Append several items to a dynamic array
 #define da_append_many(da, new_items, new_items_count)                         \
@@ -60,11 +85,11 @@
     } while (0)
 
 #define da_last(da)                                                            \
-    (da)->items[(NOB_ASSERT((da)->count > 0), (da)->count - 1)]
+    (da)->items[(AIDE_ASSERT((da)->count > 0), (da)->count - 1)]
 #define da_remove_unordered(da, i)                                             \
     do {                                                                       \
         size_t j = (i);                                                        \
-        NOB_ASSERT(j < (da)->count);                                           \
+        AIDE_ASSERT(j < (da)->count);                                          \
         (da)->items[j] = (da)->items[--(da)->count];                           \
     } while (0)
 
@@ -76,29 +101,43 @@ typedef struct {
     size_t len;
 } Sv;
 
-static inline Sv sv(const char *cstr) { return (Sv){ cstr, strlen(cstr) }; }
-static inline void sv_to_cstr(Sv s, char *dst, size_t n) {
+AIDEDEF Sv sv(const char *cstr);
+AIDEDEF void sv_to_cstr(Sv s, char *dst, size_t n);
+
+AIDEDEF bool sv_eq(Sv a, Sv b);
+AIDEDEF bool sv_eq_cstr(Sv a, const char *b);
+
+AIDEDEF int sv_to_int(Sv s);
+AIDEDEF long sv_to_long(Sv s);
+AIDEDEF unsigned long sv_to_ulong(Sv s);
+
+#endif // AIDE_H
+
+#ifdef AIDE_IMPLEMENTATION
+
+Sv sv(const char *cstr) { return (Sv){ cstr, strlen(cstr) }; }
+void sv_to_cstr(Sv s, char *dst, size_t n) {
     if (n == 0) return;
     size_t copy = s.len < n - 1 ? s.len : n - 1;
     memcpy(dst, s.ptr, copy);
     dst[copy] = '\0';
 }
 
-static inline bool sv_eq(Sv a, Sv b) {
+bool sv_eq(Sv a, Sv b) {
     return a.len == b.len && memcmp(a.ptr, b.ptr, a.len) == 0;
 }
-static inline bool sv_eq_cstr(Sv a, const char *b) {
+bool sv_eq_cstr(Sv a, const char *b) {
     return strncmp(a.ptr, b, a.len) == 0 && b[a.len] == '\0';
 }
 
-static inline int  sv_to_int(Sv s) {
+int sv_to_int(Sv s) {
     return (int)strtol(s.ptr, NULL, 10);
 }
-static inline long sv_to_long(Sv s) {
+long sv_to_long(Sv s) {
     return strtol(s.ptr, NULL, 10);
 }
-static inline unsigned long sv_to_ulong(Sv s) {
+unsigned long sv_to_ulong(Sv s) {
     return strtoul(s.ptr, NULL, 10);
 }
 
-#endif // AIDE_H
+#endif // AIDE_IMPLEMENTATION
