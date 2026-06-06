@@ -24,7 +24,7 @@ bool entity_move(Entity *e, Map *map, int dx, int dy) {
     if (new_x >= map->w || new_y >= map->h)
         return false;
 
-    MapCell *target = &map->cells[new_y][new_x];
+    Cell *target = cell_ref(map, new_y, new_x);
 
     if (target->object_id)
         return false;
@@ -33,7 +33,7 @@ bool entity_move(Entity *e, Map *map, int dx, int dy) {
     if (target->elevation == ELEV_DEEP_WATER || target->elevation == ELEV_WATER)
         return false;
 
-    map->cells[e->y][e->x].entity = NULL;
+    cell_ref(map, e->y, e->x)->entity = NULL;
 
     e->x = new_x;
     e->y = new_y;
@@ -55,7 +55,7 @@ bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
         return false;
     }
 
-    MapCell *target_cell = &map->cells[ty][tx];
+    Cell *target_cell = cell_ref(map, ty, tx);
 
     if (target_cell->object_id != 0 && object_id != 0)
         return false;
@@ -76,37 +76,25 @@ Map *map_alloc(size_t height, size_t width) {
     map->w = width;
     map->h = height;
 
-    map->cells = malloc(sizeof(MapCell *) * height);
+    map->cells = malloc(sizeof(Cell) * width * height);
     if (!map->cells) {
         free(map);
         return NULL;
-    }
-
-    for (size_t y = 0; y < height; ++y) {
-        map->cells[y] = calloc(width, sizeof(MapCell));
-
-        if (!map->cells[y]) {
-            // Cleanup previous rows on failure
-            for (size_t i = 0; i < y; ++i)
-                free(map->cells[i]);
-            free(map->cells);
-            free(map);
-            return NULL;
-        }
     }
 
     return map;
 }
 
 void map_free(Map *map) {
-    if (!map)
-        return;
+    assert(map && map->cells);
 
-    for (size_t y = 0; y < map->h; ++y) {
-        free(map->cells[y]);
-    }
     free(map->cells);
     free(map);
+}
+
+Cell *cell_ref(Map *map, uint64_t y, uint64_t x) {
+    assert(y < map->h && x < map->w);
+    return &map->cells[y * map->w + x];
 }
 
 // TASK(20260223-173936): Chunk-ize game both in struct and file
@@ -139,7 +127,7 @@ void world_init(World *w, Cw *ctx) {
     w->player = &w->entities.items[0];
 
     // TODO: Fails in a rather small possibility
-    while (w->map->cells[py + y_offset][px].elevation != ELEV_GROUND &&
+    while (cell_ref(w->map, py + y_offset, px)->elevation != ELEV_GROUND &&
            y_offset < 256) {
         ++y_offset;
     }
@@ -147,7 +135,7 @@ void world_init(World *w, Cw *ctx) {
 
     w->player->y = py;
     w->player->x = px;
-    w->map->cells[w->player->y][w->player->x].entity = w->player;
+    cell_ref(w->map, w->player->y, w->player->x)->entity = w->player;
 }
 
 void world_free(World *w) {
@@ -170,7 +158,7 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ct
 
     for (size_t y = y1; y < y2 && y < map->h; y++) {
         for (size_t x = x1; x < x2 && x < map->w; x++) {
-            MapCell *cell = &map->cells[y][x];
+            Cell *cell = cell_ref(map, y, x);
             if (cell->elevation != ELEV_NONE) continue;
 
             float scale = 0.07f;
@@ -205,7 +193,7 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ct
                     .y = y,
                 };
 
-                int pick = (res_h >> 8) % 3 + 2;
+                int pick = (res_h >> 8) % 3 + 1;
                 animal.def = &ctx->entity_defs.items[pick];
                 // TODO: Reconsider entity naming strategy, currently none mean
                 //       the default
@@ -215,10 +203,18 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ct
         }
     }
 
-    for (size_t i = pre_count; i < w->entities.count; ++i) {
-        Entity *e = &w->entities.items[i];
-        map->cells[e->y][e->x].entity = e;
+    world_link_entities_to_cells(w, pre_count);
+}
+
+Entity *world_link_entities_to_cells(World *w, size_t start) {
+    Entity *player = NULL;
+    for (size_t i = start; i < w->entities.count; ++i) {
+        Entity *entity = &w->entities.items[i];
+        cell_ref(w->map, entity->y, entity->x)->entity = entity;
+        if (entity->def->type == ENTITY_PLAYER)
+            player = entity;
     }
+    return player;
 }
 
 bool world_tick(World *w, double dt) {

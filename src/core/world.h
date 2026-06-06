@@ -60,11 +60,11 @@ typedef struct {
     uint16_t object_id;
     int object_health;
     Entity *entity;
-} MapCell;
+} Cell;
 
 typedef struct {
     uint64_t w, h;
-    MapCell **cells;
+    Cell *cells;
 } Map;
 
 typedef struct {
@@ -82,10 +82,13 @@ bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
 
 Map *map_alloc(size_t height, size_t width);
 void map_free(Map *map);
+Cell *cell_ref(Map *map, uint64_t y, uint64_t x);
 
 void world_free(World *);
 void world_init(World *, Cw *ctx);
 void world_gen_area(World *, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ctx);
+// Returns the player or `NULL` when not found
+Entity *world_link_entities_to_cells(World *w, size_t start);
 bool world_tick(World *, double dt);
 
 #endif

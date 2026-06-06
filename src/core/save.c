@@ -8,6 +8,7 @@
 #include "core/context.h"
 #include "core/log.h"
 #include "core/definitions.h"
+#include "core/world.h"
 
 static char save_path[128];
 
@@ -40,14 +41,14 @@ SaveResult world_save(const World *w, int slot) {
     for (size_t y = 0; y < w->map->h; ++y) {
         fprintf(fp, "row :");
         for (size_t x = 0; x < w->map->w; ++x)
-            fprintf(fp, " %d", w->map->cells[y][x].elevation);
+            fprintf(fp, " %d", cell_ref(w->map, y, x)->elevation);
         fputc('\n', fp);
     }
 
     fprintf(fp, "\n[objects]\n");
     for (size_t y = 0; y < w->map->h; ++y) {
         for (size_t x = 0; x < w->map->w; ++x) {
-            MapCell *cell = &w->map->cells[y][x];
+            Cell *cell = cell_ref(w->map, y, x);
             if (!cell->object_id)
                 continue;
             fprintf(fp, "object : %u %zu %zu %d\n",
@@ -121,7 +122,7 @@ SaveResult world_load(World *w, int slot, Cw *ctx) {
                     long v = strtol(p, &end, 10);
                     if (p == end)
                         do_defer_and_return(SAVE_ERR_READ);
-                    w->map->cells[row][x].elevation = (Elevation)v;
+                    cell_ref(w->map, row, x)->elevation = (Elevation)v;
                     p = end;
                 }
                 row++;
@@ -137,8 +138,8 @@ SaveResult world_load(World *w, int slot, Cw *ctx) {
                 do_defer_and_return(SAVE_ERR_READ);
             if (!w->map || x >= w->map->w || y >= w->map->h)
                 do_defer_and_return(SAVE_ERR_READ);
-            w->map->cells[y][x].object_id     = def_id;
-            w->map->cells[y][x].object_health = health;
+            cell_ref(w->map, y, x)->object_id     = def_id;
+            cell_ref(w->map, y, x)->object_health = health;
 
         } else if (strcmp(section, "entities") == 0) {
             if (line.kind == CW_LINE_STRUCT && sv_eq_cstr(line.tag, "entity")) {
@@ -166,15 +167,7 @@ SaveResult world_load(World *w, int slot, Cw *ctx) {
     if (!w->map || row != w->map->h)
         do_defer_and_return(SAVE_ERR_READ);
 
-    w->player = NULL;
-    for (size_t i = 0; i < w->entities.count; ++i) {
-        Entity *ent = &w->entities.items[i];
-        if (ent->x >= w->map->w || ent->y >= w->map->h)
-            do_defer_and_return(SAVE_ERR_READ);
-        w->map->cells[ent->y][ent->x].entity = ent;
-        if (ent->def->type == ENTITY_PLAYER)
-            w->player = ent;
-    }
+    w->player = world_link_entities_to_cells(w, 0);
 
 defer:
     if (fp)

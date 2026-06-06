@@ -4,6 +4,7 @@
 #include "core/save.h"
 #include "core/common.h"
 #include "core/definitions.h"
+#include "core/world.h"
 #include "tui/fcp.h"
 #include "tui/tui_context.h"
 
@@ -92,27 +93,31 @@ void gameplay_input(CwTui *ctx) {
         break;
         // TASK(20260226-155803): Add object related functions
     case 'K':
-        ctx->core->current_world.map
-            ->cells[ctx->core->current_world.player->y - 1][ctx->core->current_world.player->x]
-            .object_id = 0;
+        cell_ref(ctx->core->current_world.map,
+                 ctx->core->current_world.player->y - 1,
+                 ctx->core->current_world.player->x)
+            ->object_id = 0;
         g_need_redraw = true;
         break;
     case 'J':
-        ctx->core->current_world.map
-            ->cells[ctx->core->current_world.player->y + 1][ctx->core->current_world.player->x]
-            .object_id = 0;
+        cell_ref(ctx->core->current_world.map,
+                 ctx->core->current_world.player->y + 1,
+                 ctx->core->current_world.player->x)
+            ->object_id = 0;
         g_need_redraw = true;
         break;
     case 'H':
-        ctx->core->current_world.map
-            ->cells[ctx->core->current_world.player->y][ctx->core->current_world.player->x - 1]
-            .object_id = 0;
+        cell_ref(ctx->core->current_world.map,
+                 ctx->core->current_world.player->y,
+                 ctx->core->current_world.player->x - 1)
+            ->object_id = 0;
         g_need_redraw = true;
         break;
     case 'L':
-        ctx->core->current_world.map
-            ->cells[ctx->core->current_world.player->y][ctx->core->current_world.player->x + 1]
-            .object_id = 0;
+        cell_ref(ctx->core->current_world.map,
+                 ctx->core->current_world.player->y,
+                 ctx->core->current_world.player->x + 1)
+            ->object_id = 0;
         g_need_redraw = true;
         break;
     case '':
@@ -195,7 +200,7 @@ void gameplay_frame(CwTui *ctx) {
 
         for (int x = 0; x < max_x; x++) {
             size_t wx = vx + x;
-            MapCell *cell = &map->cells[wy][wx];
+            Cell *cell = cell_ref(map, wy, wx);
 
             const CellVisualDef *cell_def = &CELL_VISUAL_DB[cell->elevation];
             char symbol[2] = {cell_def->symbol, cell_def->symbol};
@@ -251,14 +256,14 @@ void gameplay_frame(CwTui *ctx) {
 
     wattrset(g_win, A_NORMAL);
 
-    mvwprintw(g_win, 0, 0, "cell: { elevation: %d }",
-              map->cells[p->y][p->x].elevation);
-    mvwprintw(g_win, 1, 0, "player: { x: %zu, y: %zu }", p->x, p->y);
-    mvwprintw(g_win, 2, 0, "entities: %zu", ctx->core->current_world.entities.count);
-    mvwprintw(g_win, 3, 0, "redraws: %d", ++redraw_count);
-    mvwprintw(g_win, 4, 0, "fcp_get calls: %d / %d",
+    mvwprintw(g_win, 1, 1, "cell elevation: %d",
+              cell_ref(map, p->y, p->x)->elevation);
+    mvwprintw(g_win, 2, 1, "x, y, z: %zu, %zu", p->x, p->y);
+    mvwprintw(g_win, 3, 1, "entities: %zu", ctx->core->current_world.entities.count);
+    mvwprintw(g_win, 4, 1, "redraws: %d", ++redraw_count);
+    mvwprintw(g_win, 5, 1, "fcp_get calls: %d / %d",
               fcp_get_calls_in_one_render, fcp_get_calls);
-    mvwprintw(g_win, 5, 0, "attrset calls: %d / %d",
+    mvwprintw(g_win, 6, 1, "attrset calls: %d / %d",
               attrset_calls_in_one_render, attrset_calls);
 
     wnoutrefresh(g_win);

@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     log_deinit(&ctx);
     endwin();
 
-    if (0) {
+    if (1) { // Sanitizer, shut up
         free_logs();
 
         da_free(core_ctx.item_defs);
