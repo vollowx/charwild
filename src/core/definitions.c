@@ -1,4 +1,5 @@
 #include "core/common.h"
+#include "core/log.h"
 #include "core/definitions.h"
 
 static const struct { const char *name; short val; } COLOR_TABLE[] = {

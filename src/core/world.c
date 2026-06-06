@@ -4,8 +4,9 @@
 #include <ncurses.h>
 #include <simplexnoise1234.h>
 
-#include "core/world.h"
 #include "core/context.h"
+#include "core/log.h"
+#include "core/world.h"
 #include "core/common.h"
 
 bool entity_move(Entity *e, Map *map, int dx, int dy) {

@@ -5,7 +5,6 @@
 #define AIDE_H
 
 #include <stdbool.h>
-#include <stddef.h>
 #include <string.h>
 
 #ifndef AIDEDEF
@@ -105,15 +104,22 @@ AIDEDEF Sv sv(const char *cstr);
 AIDEDEF void sv_to_cstr(Sv s, char *dst, size_t n);
 
 AIDEDEF bool sv_eq(Sv a, Sv b);
-AIDEDEF bool sv_eq_cstr(Sv a, const char *b);
+AIDEDEF bool sv_eq_cstr(Sv a, const char *cstr);
 
-AIDEDEF int sv_to_int(Sv s);
-AIDEDEF long sv_to_long(Sv s);
-AIDEDEF unsigned long sv_to_ulong(Sv s);
+AIDEDEF Sv sv_from_data(const char *ptr, size_t len);
+AIDEDEF Sv sv_trim_left(Sv);
+AIDEDEF Sv sv_trim_right(Sv);
+AIDEDEF Sv sv_trim(Sv);
+
+AIDEDEF int sv_to_int(Sv);
+AIDEDEF long sv_to_long(Sv);
+AIDEDEF unsigned long sv_to_ulong(Sv);
 
 #endif // AIDE_H
 
 #ifdef AIDE_IMPLEMENTATION
+
+#include <ctype.h>
 
 Sv sv(const char *cstr) { return (Sv){ cstr, strlen(cstr) }; }
 void sv_to_cstr(Sv s, char *dst, size_t n) {
@@ -130,14 +136,43 @@ bool sv_eq_cstr(Sv a, const char *b) {
     return strncmp(a.ptr, b, a.len) == 0 && b[a.len] == '\0';
 }
 
-int sv_to_int(Sv s) {
-    return (int)strtol(s.ptr, NULL, 10);
+Sv sv_from_data(const char *ptr, size_t len) {
+    Sv sv;
+    sv.ptr = ptr;
+    sv.len = len;
+    return sv;
 }
-long sv_to_long(Sv s) {
-    return strtol(s.ptr, NULL, 10);
+
+Sv sv_trim_left(Sv sv) {
+    size_t i = 0;
+    while (i < sv.len && isspace(sv.ptr[i])) {
+        i += 1;
+    }
+
+    return sv_from_data(sv.ptr + i, sv.len - i);
 }
-unsigned long sv_to_ulong(Sv s) {
-    return strtoul(s.ptr, NULL, 10);
+
+Sv sv_trim_right(Sv sv) {
+    size_t i = 0;
+    while (i < sv.len && isspace(sv.ptr[sv.len - 1 - i])) {
+        i += 1;
+    }
+
+    return sv_from_data(sv.ptr, sv.len - i);
+}
+
+Sv sv_trim(Sv sv) {
+    return sv_trim_right(sv_trim_left(sv));
+}
+
+int sv_to_int(Sv sv) {
+    return (int)strtol(sv.ptr, NULL, 10);
+}
+long sv_to_long(Sv sv) {
+    return strtol(sv.ptr, NULL, 10);
+}
+unsigned long sv_to_ulong(Sv sv) {
+    return strtoul(sv.ptr, NULL, 10);
 }
 
 #endif // AIDE_IMPLEMENTATION

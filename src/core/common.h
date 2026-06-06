@@ -8,7 +8,6 @@
 #include <string.h>
 
 #include "aide.h"
-#include "core/log.h"
 
 #define CW_VERSION_MAJOR 0
 #define CW_VERSION_MINOR 0
