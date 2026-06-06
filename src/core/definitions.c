@@ -47,7 +47,7 @@ bool definitions_load(
 
     while (cw_next_line(fp, buf, sizeof(buf), &line)) {
         if (line.kind == CW_LINE_SECTION) {
-            sv_to_buf(line.tag, section, sizeof(section));
+            sv_to_cstr(line.tag, section, sizeof(section));
             continue;
         }
         if (line.kind != CW_LINE_STRUCT)
@@ -55,50 +55,45 @@ bool definitions_load(
 
         if (strcmp(section, "items") == 0) {
             ItemDef def = {0};
-            char symbol[8] = {0}, fg_name[32] = {0}, bg_name[32] = {0}, name[32] = {0};
+            char fg_name[32] = {0}, bg_name[32] = {0}, name[32] = {0};
             if (sscanf(line.val.ptr, "%hu %d %7s %31s %31s %31[^\n]",
-                       &def.id, &def.max_stack, symbol, fg_name, bg_name, name) != 6)
+                       &def.id, &def.max_stack, def.symbol,
+                       fg_name, bg_name, name) != 6)
                 do_defer_and_return(false);
             if      (sv_eq_cstr(line.tag, "resource"))   def.type = ITEM_RESOURCE;
             else if (sv_eq_cstr(line.tag, "placeable"))  def.type = ITEM_PLACEABLE;
             else if (sv_eq_cstr(line.tag, "consumable")) def.type = ITEM_CONSUMABLE;
             else if (sv_eq_cstr(line.tag, "equipment"))  def.type = ITEM_EQUIPMENT;
             else do_defer_and_return(false);
-            def.symbol[0] = symbol[0];
-            def.symbol[1] = symbol[1];
             def.fg = parse_color(fg_name);
             def.bg = parse_color(bg_name);
             snprintf(def.name, sizeof(def.name), "%s", name);
             da_append(&items, def);
-
         } else if (strcmp(section, "entities") == 0) {
             EntityDef def = {0};
-            char passable[8] = {0}, symbol[8] = {0}, fg_name[32] = {0}, bg_name[32] = {0}, name[32] = {0};
+            char passable[8] = {0}, fg_name[32] = {0}, bg_name[32] = {0}, name[32] = {0};
             if (sscanf(line.val.ptr, "%hu %d %7s %7s %31s %31s %31[^\n]",
-                       &def.id, &def.max_health, passable, symbol, fg_name, bg_name, name) != 7)
+                       &def.id, &def.max_health, passable, def.symbol,
+                       fg_name, bg_name, name) != 7)
                 do_defer_and_return(false);
             if      (sv_eq_cstr(line.tag, "player")) def.type = ENTITY_PLAYER;
             else if (sv_eq_cstr(line.tag, "animal")) def.type = ENTITY_ANIMAL;
             else do_defer_and_return(false);
             if (!parse_bool(passable, &def.is_passable)) do_defer_and_return(false);
-            if (strlen(symbol) != 2) do_defer_and_return(false);
-            def.symbol[0] = symbol[0];
-            def.symbol[1] = symbol[1];
             def.fg = parse_color(fg_name);
             def.bg = parse_color(bg_name);
             snprintf(def.name, sizeof(def.name), "%s", name);
             da_append(&entities, def);
-
         } else if (strcmp(section, "objects") == 0) {
             ObjectDef def = {0};
-            char passable[8] = {0}, symbol[8] = {0}, fg_name[32] = {0}, bg_name[32] = {0}, name[32] = {0};
+            char passable[8] = {0}, fg_name[32] = {0}, bg_name[32] = {0},
+                 name[32] = {0};
             if (!sv_eq_cstr(line.tag, "object")) do_defer_and_return(false);
             if (sscanf(line.val.ptr, "%hu %d %7s %7s %31s %31s %31[^\n]",
-                       &def.id, &def.max_health, passable, symbol, fg_name, bg_name, name) != 7)
+                       &def.id, &def.max_health, passable, def.symbol,
+                       fg_name, bg_name, name) != 7)
                 do_defer_and_return(false);
             if (!parse_bool(passable, &def.is_passable)) do_defer_and_return(false);
-            def.symbol[0] = symbol[0];
-            def.symbol[1] = symbol[1];
             def.fg = parse_color(fg_name);
             def.bg = parse_color(bg_name);
             snprintf(def.name, sizeof(def.name), "%s", name);
@@ -120,10 +115,14 @@ defer:
         da_free(items);
         da_free(entities);
         da_free(objects);
+        error("[definitions] failed to load from %s", path);
+    } else {
+        info("[definitions] loaded from %s", path);
     }
     return ret;
 }
 
+// TODO: Optimize definition searching
 ItemDef *item_def_lookup(ItemDefs defs, uint16_t id) {
     da_foreach(ItemDef, def, &defs)
         if (def->id == id)

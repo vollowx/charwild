@@ -95,7 +95,7 @@ SaveResult world_load(World *w, int slot, Cw *ctx) {
 
     while (cw_next_line(fp, buf, sizeof(buf), &line)) {
         if (line.kind == CW_LINE_SECTION) {
-            sv_to_buf(line.tag, section, sizeof(section));
+            sv_to_cstr(line.tag, section, sizeof(section));
             continue;
         }
 
@@ -205,7 +205,7 @@ SavePreview save_preview(int slot) {
 
     while (cw_next_line(fp, buf, sizeof(buf), &line)) {
         if (line.kind == CW_LINE_SECTION) {
-            sv_to_buf(line.tag, section, sizeof(section));
+            sv_to_cstr(line.tag, section, sizeof(section));
             if (strcmp(section, "header") != 0)
                 break; // past the header section, stop
             continue;
@@ -217,7 +217,7 @@ SavePreview save_preview(int slot) {
         else if (sv_eq_cstr(line.tag, "slot"))
             p.header.slot = sv_to_int(line.val);
         else if (sv_eq_cstr(line.tag, "player"))
-            sv_to_buf(line.val, p.header.player_name, sizeof(p.header.player_name));
+            sv_to_cstr(line.val, p.header.player_name, sizeof(p.header.player_name));
     }
 
     p.exists = p.header.version != 0;

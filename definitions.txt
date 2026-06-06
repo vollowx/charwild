@@ -22,7 +22,7 @@ placeable  : 10000  64  ##  white   red   Brick
 // player : id  max_health  passable  symbol  fg      bg    name
 // animal : id  max_health  passable  symbol  fg      bg    name
 player :     0  100  0  \@  red     none  You!
-animal :     1   20  0  Uo  black   none  Cow
+animal :     1   20  0  Mo  black   none  Cow
 animal :     2   20  0  qp  red     none  Pig
 animal :     3   20  0  wm  white   none  Sheep
 animal :     4   25  0  Wm  white   none  Goat
