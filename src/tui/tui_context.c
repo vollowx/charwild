@@ -1,4 +1,4 @@
-#include "ui/tui_context.h"
+#include "tui/tui_context.h"
 
 #define X(name)                                                                \
     CwTuiOverlay overlay_##name = {name##_init, name##_deinit, name##_frame,   \

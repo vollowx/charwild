@@ -3,8 +3,8 @@
 #include "core/common.h"
 #include "core/log.h"
 #include "core/options.h"
-#include "ui/fcp.h"
-#include "ui/tui_context.h"
+#include "tui/fcp.h"
+#include "tui/tui_context.h"
 
 #define OPTIONS_HEIGHT 32
 #define OPTIONS_WIDTH 56

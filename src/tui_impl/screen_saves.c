@@ -3,8 +3,8 @@
 #include "core/common.h"
 #include "core/log.h"
 #include "core/save.h"
-#include "ui/fcp.h"
-#include "ui/tui_context.h"
+#include "tui/fcp.h"
+#include "tui/tui_context.h"
 
 // menu height = 3, padding = 1 * 2, border = 1 * 2
 #define SAVES_HEIGHT 7

@@ -2,10 +2,9 @@
 
 #include "core/common.h"
 #include "core/log.h"
-#include "core/options.h"
 #include "core/definitions.h"
-#include "ui/fcp.h"
-#include "ui/tui_context.h"
+#include "core/options.h"
+#include "tui/tui_context.h"
 
 int main(int argc, char *argv[]) {
     Cw core_ctx = {
@@ -37,7 +36,6 @@ int main(int argc, char *argv[]) {
 
     start_color();
     use_default_colors();
-    fcp_init();
 
     definitions_load(
         CW_DEFINITIONS_PATH,

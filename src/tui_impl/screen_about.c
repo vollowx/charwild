@@ -1,7 +1,7 @@
 #include "core/common.h"
 #include "core/log.h"
-#include "ui/fcp.h"
-#include "ui/tui_context.h"
+#include "tui/fcp.h"
+#include "tui/tui_context.h"
 
 #define ABOUT_HEIGHT 9
 #define ABOUT_WIDTH 60

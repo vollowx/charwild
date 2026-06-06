@@ -1,4 +1,6 @@
-#include "ui/fcp.h"
+#include <ncurses.h>
+#include <string.h>
+#include "tui/fcp.h"
 
 #define FCP_OFFSET 1
 #define FCP_SIZE (256 + FCP_OFFSET)
@@ -6,12 +8,8 @@
 static short fcp_cache[FCP_SIZE][FCP_SIZE];
 static short fcp_next_id = 1;
 
-void fcp_init(void) {
-    for (int i = 0; i < FCP_SIZE; i++) {
-        for (int j = 0; j < FCP_SIZE; j++) {
-            fcp_cache[i][j] = 0;
-        }
-    }
+void fcp_reset(void) {
+    memset(fcp_cache, 0, sizeof(fcp_cache));
     fcp_next_id = 1;
 }
 

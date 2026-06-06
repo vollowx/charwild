@@ -1,8 +1,8 @@
-#include "core/common.h"
 #include "core/log.h"
+#include "core/common.h"
 #include "core/options.h"
-#include "ui/fcp.h"
-#include "ui/tui_context.h"
+#include "tui/fcp.h"
+#include "tui/tui_context.h"
 
 WINDOW *l_win = NULL;
 static short log_cp[3];

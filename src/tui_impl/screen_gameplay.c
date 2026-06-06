@@ -3,9 +3,9 @@
 #include "core/log.h"
 #include "core/save.h"
 #include "core/common.h"
-#include "core/world_defs.h"
-#include "ui/fcp.h"
-#include "ui/tui_context.h"
+#include "core/definitions.h"
+#include "tui/fcp.h"
+#include "tui/tui_context.h"
 
 typedef struct {
     char symbol;

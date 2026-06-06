@@ -2,8 +2,8 @@
 
 #include "core/common.h"
 #include "core/log.h"
-#include "ui/fcp.h"
-#include "ui/tui_context.h"
+#include "tui/fcp.h"
+#include "tui/tui_context.h"
 
 #define MAIN_MENU_HEIGHT 8
 #define MAIN_MENU_WIDTH 36
