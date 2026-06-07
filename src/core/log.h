@@ -6,9 +6,9 @@
 #define LOG_MAX_LENGTH 128
 #define LOG_UI_CAPACITY 8
 
-#define info(fmt, ...) log_message(LOG_INFO, fmt, ##__VA_ARGS__)
-#define warn(fmt, ...) log_message(LOG_WARNING, fmt, ##__VA_ARGS__)
-#define error(fmt, ...) log_message(LOG_ERROR, fmt, ##__VA_ARGS__)
+#define info(fmt, ...)  log_add(LOG_INFO,    fmt, ##__VA_ARGS__)
+#define warn(fmt, ...)  log_add(LOG_WARNING, fmt, ##__VA_ARGS__)
+#define error(fmt, ...) log_add(LOG_ERROR,   fmt, ##__VA_ARGS__)
 
 typedef enum {
     LOG_INFO = 0,
@@ -27,8 +27,8 @@ typedef struct {
     size_t count;
 } Logs;
 
-void log_message(LogLevel level, const char *fmt, ...);
-void free_logs(void);
+void log_add(LogLevel level, const char *fmt, ...);
+void log_free_all(void);
 
 extern Logs logs;
 

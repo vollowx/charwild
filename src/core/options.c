@@ -4,7 +4,8 @@
 #include "core/options.h"
 #include "core/common.h"
 
-void options_load(CwOptions *opts, const char *path) {
+void options_load(CwOptions *opts, const char *path)
+{
     FILE *fp = fopen(path, "r");
     if (!fp) {
         warn("[options] %s not found, falling back to default options", path);
@@ -26,7 +27,8 @@ void options_load(CwOptions *opts, const char *path) {
     info("[options] loaded from %s", path);
 }
 
-bool options_save(CwOptions *opts, const char *path) {
+bool options_save(CwOptions *opts, const char *path)
+{
     bool ret = true;
     FILE *fp = fopen(path, "w");
     if (!fp)

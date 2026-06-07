@@ -14,14 +14,16 @@ static const struct { const char *name; short val; } COLOR_TABLE[] = {
     {"white",   COLOR_WHITE},
 };
 
-static short parse_color(const char *s) {
+static short parse_color(const char *s)
+{
     for (size_t i = 0; i < sizeof(COLOR_TABLE) / sizeof(*COLOR_TABLE); ++i)
         if (strcmp(s, COLOR_TABLE[i].name) == 0)
             return COLOR_TABLE[i].val;
     return 0;
 }
 
-static bool parse_bool(const char *s, bool *out) {
+static bool parse_bool(const char *s, bool *out)
+{
     if (strcmp(s, "0") == 0) { *out = false; return true; }
     if (strcmp(s, "1") == 0) { *out = true;  return true; }
     return false;
@@ -32,7 +34,8 @@ bool definitions_load(
     ItemDefs   *item_defs,
     EntityDefs *entity_defs,
     ObjectDefs *object_defs
-) {
+)
+{
     bool ret = true;
     ItemDefs   items    = {0};
     EntityDefs entities = {0};
@@ -124,21 +127,24 @@ defer:
 }
 
 // TODO: Optimize definition searching
-ItemDef *item_def_lookup(ItemDefs defs, uint16_t id) {
+ItemDef *item_def_lookup(ItemDefs defs, uint16_t id)
+{
     da_foreach(ItemDef, def, &defs)
         if (def->id == id)
             return def;
     return NULL;
 }
 
-EntityDef *entity_def_lookup(EntityDefs defs, uint16_t id) {
+EntityDef *entity_def_lookup(EntityDefs defs, uint16_t id)
+{
     da_foreach(EntityDef, def, &defs)
         if (def->id == id)
             return def;
     return NULL;
 }
 
-ObjectDef *object_def_lookup(ObjectDefs defs, uint16_t id) {
+ObjectDef *object_def_lookup(ObjectDefs defs, uint16_t id)
+{
     da_foreach(ObjectDef, def, &defs)
         if (def->id == id)
             return def;

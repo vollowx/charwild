@@ -121,29 +121,37 @@ AIDEDEF unsigned long sv_to_ulong(Sv);
 
 #include <ctype.h>
 
-Sv sv(const char *cstr) { return (Sv){ cstr, strlen(cstr) }; }
-void sv_to_cstr(Sv s, char *dst, size_t n) {
+Sv sv(const char *cstr)
+{
+    return (Sv){ cstr, strlen(cstr) };
+}
+void sv_to_cstr(Sv s, char *dst, size_t n)
+{
     if (n == 0) return;
     size_t copy = s.len < n - 1 ? s.len : n - 1;
     memcpy(dst, s.ptr, copy);
     dst[copy] = '\0';
 }
 
-bool sv_eq(Sv a, Sv b) {
+bool sv_eq(Sv a, Sv b)
+{
     return a.len == b.len && memcmp(a.ptr, b.ptr, a.len) == 0;
 }
-bool sv_eq_cstr(Sv a, const char *b) {
+bool sv_eq_cstr(Sv a, const char *b)
+{
     return strncmp(a.ptr, b, a.len) == 0 && b[a.len] == '\0';
 }
 
-Sv sv_from_data(const char *ptr, size_t len) {
+Sv sv_from_data(const char *ptr, size_t len)
+{
     Sv sv;
     sv.ptr = ptr;
     sv.len = len;
     return sv;
 }
 
-Sv sv_trim_left(Sv sv) {
+Sv sv_trim_left(Sv sv)
+{
     size_t i = 0;
     while (i < sv.len && isspace(sv.ptr[i])) {
         i += 1;
@@ -152,7 +160,8 @@ Sv sv_trim_left(Sv sv) {
     return sv_from_data(sv.ptr + i, sv.len - i);
 }
 
-Sv sv_trim_right(Sv sv) {
+Sv sv_trim_right(Sv sv)
+{
     size_t i = 0;
     while (i < sv.len && isspace(sv.ptr[sv.len - 1 - i])) {
         i += 1;
@@ -161,17 +170,21 @@ Sv sv_trim_right(Sv sv) {
     return sv_from_data(sv.ptr, sv.len - i);
 }
 
-Sv sv_trim(Sv sv) {
+Sv sv_trim(Sv sv)
+{
     return sv_trim_right(sv_trim_left(sv));
 }
 
-int sv_to_int(Sv sv) {
+int sv_to_int(Sv sv)
+{
     return (int)strtol(sv.ptr, NULL, 10);
 }
-long sv_to_long(Sv sv) {
+long sv_to_long(Sv sv)
+{
     return strtol(sv.ptr, NULL, 10);
 }
-unsigned long sv_to_ulong(Sv sv) {
+unsigned long sv_to_ulong(Sv sv)
+{
     return strtoul(sv.ptr, NULL, 10);
 }
 

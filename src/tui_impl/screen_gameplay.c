@@ -31,7 +31,8 @@ static CellVisualDef CELL_VISUAL_DB[] = {
 WINDOW *g_win = NULL;
 bool g_need_redraw = true;
 
-void gameplay_init(CwTui *ctx) {
+void gameplay_init(CwTui *ctx)
+{
     info("[tui] screen = gameplay");
 
     static bool first_run = true;
@@ -53,7 +54,8 @@ void gameplay_init(CwTui *ctx) {
     keypad(g_win, TRUE);
 }
 
-void gameplay_deinit(CwTui *ctx) {
+void gameplay_deinit(CwTui *ctx)
+{
     world_save(&ctx->core->current_world, ctx->core->current_slot);
     world_free(&ctx->core->current_world);
     ctx->core->current_world = (World){0};
@@ -67,7 +69,8 @@ void gameplay_deinit(CwTui *ctx) {
     g_need_redraw = true;
 }
 
-void gameplay_input(CwTui *ctx) {
+void gameplay_input(CwTui *ctx)
+{
     switch (ctx->ch) {
     case KEY_UP:
         // TASK(20260227-142821): Redesign player movement, consider add into
@@ -142,7 +145,8 @@ void gameplay_input(CwTui *ctx) {
     }
 }
 
-void gameplay_frame(CwTui *ctx) {
+void gameplay_frame(CwTui *ctx)
+{
     static double tick_accumulator = 0;
     const double tick_rate = 1.0 / CW_TPS;
 
@@ -271,7 +275,9 @@ void gameplay_frame(CwTui *ctx) {
     g_need_redraw = false;
 }
 
-void gameplay_resize(CwTui *ctx) {
+void gameplay_resize(CwTui *ctx)
+{
     wresize(g_win, LINES, COLS);
     mvwin(g_win, 0, 0);
+    g_need_redraw = true;
 }

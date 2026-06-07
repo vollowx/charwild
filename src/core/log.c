@@ -7,7 +7,8 @@
 
 Logs logs = {0};
 
-void log_message(LogLevel level, const char *fmt, ...) {
+void log_add(LogLevel level, const char *fmt, ...)
+{
     char msg[LOG_MAX_LENGTH + 1];
 
     va_list args;
@@ -22,7 +23,8 @@ void log_message(LogLevel level, const char *fmt, ...) {
     da_append(&logs, log);
 }
 
-void free_logs(void) {
+void log_free_all(void)
+{
     da_foreach(Log, it, &logs)
         free(it->msg);
     da_free(logs);

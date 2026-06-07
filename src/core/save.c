@@ -12,12 +12,14 @@
 
 static char save_path[128];
 
-static const char *get_save_path(int slot) {
+static const char *get_save_path(int slot)
+{
     snprintf(save_path, sizeof(save_path), CW_SAVES_PATH, slot);
     return save_path;
 }
 
-SaveResult world_save(const World *w, int slot) {
+SaveResult world_save(const World *w, int slot)
+{
     info("[save] saving slot %d", slot);
 
     assert(w && w->map && w->player);
@@ -78,7 +80,8 @@ defer:
     return ret;
 }
 
-SaveResult world_load(World *w, int slot, Cw *ctx) {
+SaveResult world_load(World *w, int slot, Cw *ctx)
+{
     info("[save] loading slot %d", slot);
     assert(w && ctx);
     SaveResult ret  = SAVE_OK;
@@ -180,13 +183,15 @@ defer:
     return ret;
 }
 
-SaveResult save_delete(int slot) {
+SaveResult save_delete(int slot)
+{
     if (remove(get_save_path(slot)) != 0)
         return SAVE_ERR_WRITE;
     return SAVE_OK;
 }
 
-SavePreview save_preview(int slot) {
+SavePreview save_preview(int slot)
+{
     SavePreview p = {0};
     FILE *fp = fopen(get_save_path(slot), "r");
     if (!fp)

@@ -77,10 +77,10 @@ typedef struct {
 } World;
 
 // `dy` for delta x, so as `dx`
-bool entity_move(Entity *e, Map *map, int dx, int dy);
-bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
-                         int dy);
+bool entity_move(Entity *e, Map *m, int dx, int dy);
+bool entity_place_object(Entity *e, Map *m, uint16_t object_id, int dx, int dy);
 
+// Returns `NULL` when failing on allocations.
 Map *map_alloc(size_t height, size_t width);
 void map_free(Map *map);
 Cell *cell_ref(Map *map, uint64_t y, uint64_t x);

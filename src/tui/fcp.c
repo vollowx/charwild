@@ -8,12 +8,14 @@
 static short fcp_cache[FCP_SIZE][FCP_SIZE];
 static short fcp_next_id = 1;
 
-void fcp_reset(void) {
+void fcp_reset(void)
+{
     memset(fcp_cache, 0, sizeof(fcp_cache));
     fcp_next_id = 1;
 }
 
-short fcp_get(short fg, short bg) {
+short fcp_get(short fg, short bg)
+{
     int cfg = fg + FCP_OFFSET;
     int cbg = bg + FCP_OFFSET;
 

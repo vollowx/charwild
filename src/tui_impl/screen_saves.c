@@ -18,7 +18,8 @@ static WINDOW *s_win = NULL;
 static WINDOW *s_pre = NULL;
 static SavePreview previews[3];
 
-void rebuild_saves_menu(CwTui *ctx) {
+void rebuild_saves_menu(CwTui *ctx)
+{
     if (s_menu && s_items) { // Not first run
         unpost_menu(s_menu);
         free_menu(s_menu);
@@ -57,7 +58,8 @@ void rebuild_saves_menu(CwTui *ctx) {
     post_menu(s_menu);
 }
 
-void saves_init(CwTui *ctx) {
+void saves_init(CwTui *ctx)
+{
     info("[tui] screen = saves");
 
     //                          gap
@@ -73,7 +75,8 @@ void saves_init(CwTui *ctx) {
     rebuild_saves_menu(ctx);
 }
 
-void saves_deinit(CwTui *ctx) {
+void saves_deinit(CwTui *ctx)
+{
     werase(s_win);
     werase(s_pre);
     wnoutrefresh(s_win);
@@ -85,7 +88,8 @@ void saves_deinit(CwTui *ctx) {
     s_pre = NULL;
 }
 
-void saves_input(CwTui *ctx) {
+void saves_input(CwTui *ctx)
+{
     int slot = item_index(current_item(s_menu));
 
     ITEM *cur = current_item(s_menu);
@@ -164,7 +168,8 @@ void saves_input(CwTui *ctx) {
     }
 }
 
-void saves_frame(CwTui *ctx) {
+void saves_frame(CwTui *ctx)
+{
     draw_win_frame(s_win, "Select Save", COLOR_BLUE);
     wnoutrefresh(s_win);
 
@@ -193,7 +198,8 @@ void saves_frame(CwTui *ctx) {
     wnoutrefresh(s_pre);
 }
 
-void saves_resize(CwTui *ctx) {
+void saves_resize(CwTui *ctx)
+{
     int total_w = SAVES_WIDTH + 1 + PREVIEW_WIDTH;
     int start_x = (COLS - total_w) / 2;
     int start_y = (LINES - PREVIEW_HEIGHT) / 2;

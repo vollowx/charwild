@@ -35,7 +35,8 @@ typedef struct {
 
 // Reads the next meaningful line from fp into buf and parses it into *out.
 // Returns false on EOF.
-static inline bool cw_next_line(FILE *fp, char *buf, size_t bufsz, CwLine *out) {
+static inline bool cw_next_line(FILE *fp, char *buf, size_t bufsz, CwLine *out)
+{
     while (fgets(buf, (int)bufsz, fp)) {
         // Strip // comment
         char *comment = strstr(buf, "//");

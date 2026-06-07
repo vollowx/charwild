@@ -5,26 +5,29 @@
 #include "tui/tui_context.h"
 
 WINDOW *l_win = NULL;
-static short log_cp[3];
+static short log_color_pairs[3];
 
-void log_init(CwTui *ctx) {
+void log_init(CwTui *ctx)
+{
     info("[tui] overlay += log");
 
-    log_cp[LOG_INFO] = fcp_get(COLOR_BLUE, -1);
-    log_cp[LOG_WARNING] = fcp_get(COLOR_YELLOW, -1);
-    log_cp[LOG_ERROR] = fcp_get(COLOR_RED, -1);
+    log_color_pairs[LOG_INFO]    = fcp_get(COLOR_BLUE, -1);
+    log_color_pairs[LOG_WARNING] = fcp_get(COLOR_YELLOW, -1);
+    log_color_pairs[LOG_ERROR]   = fcp_get(COLOR_RED, -1);
 
     int height = LOG_UI_CAPACITY + 1;
     l_win = newwin(height, COLS, LINES - height, 0);
 }
 
-void log_deinit(CwTui *ctx) {
+void log_deinit(CwTui *ctx)
+{
     werase(l_win);
     wnoutrefresh(l_win);
     delwin(l_win);
 }
 
-void log_frame(CwTui *ctx) {
+void log_frame(CwTui *ctx)
+{
     static bool was_showing = false;
 
     if (!ctx->core->options.show_log) {
@@ -50,7 +53,7 @@ void log_frame(CwTui *ctx) {
         const Log *log = &logs.items[--i];
 
         if ((int)log->level >= ctx->core->options.log_level) {
-            short cp = log_cp[log->level];
+            short cp = log_color_pairs[log->level];
             wattron(l_win, COLOR_PAIR(cp));
             mvwprintw(l_win, line--, 0, "%s", log->msg);
             wattroff(l_win, COLOR_PAIR(cp));
@@ -60,7 +63,8 @@ void log_frame(CwTui *ctx) {
     wnoutrefresh(l_win);
 }
 
-void log_resize(CwTui *ctx) {
+void log_resize(CwTui *ctx)
+{
     int height = LOG_UI_CAPACITY + 1;
     wresize(l_win, height, COLS);
     mvwin(l_win, LINES - height, 0);

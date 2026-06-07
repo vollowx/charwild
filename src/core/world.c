@@ -9,8 +9,9 @@
 #include "core/world.h"
 #include "core/common.h"
 
-bool entity_move(Entity *e, Map *map, int dx, int dy) {
-    assert(e && map);
+bool entity_move(Entity *e, Map *m, int dx, int dy)
+{
+    assert(e && m);
 
     if (dx < 0 && e->x < (size_t)abs(dx))
         return false;
@@ -19,10 +20,10 @@ bool entity_move(Entity *e, Map *map, int dx, int dy) {
 
     size_t dest_x = e->x + dx, dest_y = e->y + dy;
 
-    if (dest_x >= map->w || dest_y >= map->h)
+    if (dest_x >= m->w || dest_y >= m->h)
         return false;
 
-    Cell *dest = cell_ref(map, dest_y, dest_x);
+    Cell *dest = cell_ref(m, dest_y, dest_x);
 
     if (dest->entity != NULL)
         return false;
@@ -32,7 +33,7 @@ bool entity_move(Entity *e, Map *map, int dx, int dy) {
     if (dest->elevation <= ELEV_WATER && !(dest->object_id == 10000))
         return false;
 
-    cell_ref(map, e->y, e->x)->entity = NULL;
+    cell_ref(m, e->y, e->x)->entity = NULL;
     e->x = dest_x;
     e->y = dest_y;
     dest->entity = e;
@@ -40,19 +41,19 @@ bool entity_move(Entity *e, Map *map, int dx, int dy) {
     return true;
 }
 
-bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
-                         int dy) {
-    assert(e && map && map->cells);
+bool entity_place_object(Entity *e, Map *m, uint16_t object_id, int dx, int dy)
+{
+    assert(e && m && m->cells);
 
     int tx = (int)e->x + dx;
     int ty = (int)e->y + dy;
 
-    if (tx < 0 || ty < 0 || (size_t)tx >= map->w || (size_t)ty >= map->h) {
+    if (tx < 0 || ty < 0 || (size_t)tx >= m->w || (size_t)ty >= m->h) {
         error("entity_place_object: Target (%d, %d) out of bounds", tx, ty);
         return false;
     }
 
-    Cell *target_cell = cell_ref(map, ty, tx);
+    Cell *target_cell = cell_ref(m, ty, tx);
 
     if (target_cell->object_id != 0 && object_id != 0)
         return false;
@@ -64,8 +65,8 @@ bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
     return true;
 }
 
-// Returns `NULL` when failing on allocations.
-Map *map_alloc(size_t height, size_t width) {
+Map *map_alloc(size_t height, size_t width)
+{
     Map *map = malloc(sizeof(Map));
     if (!map)
         return NULL;
@@ -82,20 +83,23 @@ Map *map_alloc(size_t height, size_t width) {
     return map;
 }
 
-void map_free(Map *map) {
+void map_free(Map *map)
+{
     assert(map && map->cells);
 
     free(map->cells);
     free(map);
 }
 
-Cell *cell_ref(Map *map, uint64_t y, uint64_t x) {
+Cell *cell_ref(Map *map, uint64_t y, uint64_t x)
+{
     assert(y < map->h && x < map->w);
     return &map->cells[y * map->w + x];
 }
 
 // TASK(20260223-173936): Chunk-ize game both in struct and file
-void world_init(World *w, Cw *ctx) {
+void world_init(World *w, Cw *ctx)
+{
     w->map = map_alloc(512, 512);
 
     w->entities.items = NULL;
@@ -135,7 +139,8 @@ void world_init(World *w, Cw *ctx) {
     cell_ref(w->map, w->player->y, w->player->x)->entity = w->player;
 }
 
-void world_free(World *w) {
+void world_free(World *w)
+{
     assert(w != NULL);
 
     map_free(w->map);
@@ -144,7 +149,8 @@ void world_free(World *w) {
     da_free(w->entities);
 }
 
-void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ctx) {
+void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ctx)
+{
     assert(w && w->map);
 
     float scale = 0.07f;
@@ -201,7 +207,8 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ct
     world_link_entities_to_cells(w, original_entity_count);
 }
 
-Entity *world_link_entities_to_cells(World *w, size_t start) {
+Entity *world_link_entities_to_cells(World *w, size_t start)
+{
     Entity *player = NULL;
     for (size_t i = start; i < w->entities.count; ++i) {
         Entity *entity = &w->entities.items[i];
@@ -212,7 +219,8 @@ Entity *world_link_entities_to_cells(World *w, size_t start) {
     return player;
 }
 
-bool world_tick(World *w, double dt) {
+bool world_tick(World *w, double dt)
+{
     bool updated = false;
 
     return updated;

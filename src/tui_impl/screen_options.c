@@ -13,21 +13,24 @@ static ITEM **o_items = NULL;
 static MENU *o_menu = NULL;
 static WINDOW *o_win = NULL;
 
-ITEM *new_caption(const char *title) {
+ITEM *new_caption(const char *title)
+{
     ITEM *item = new_item(title, "");
     item_opts_off(item, O_SELECTABLE);
     return item;
 }
 
 void format_menu_item(char *dest, size_t size, const char *label,
-                      const char *value) {
+                      const char *value)
+{
     int label_width = 16;
     int total_width = OPTIONS_WIDTH - 8;
     snprintf(dest, size, "%-*s %*s", label_width, label,
              (total_width - label_width), value);
 }
 
-void rebuild_options_menu(CwTui *ctx) {
+void rebuild_options_menu(CwTui *ctx)
+{
     int current_idx = 0;
 
     if (o_menu && o_items) { // Not first run
@@ -92,7 +95,8 @@ void rebuild_options_menu(CwTui *ctx) {
     post_menu(o_menu);
 }
 
-void options_init(CwTui *ctx) {
+void options_init(CwTui *ctx)
+{
     info("[tui] screen = options");
 
     o_win = newwin(OPTIONS_HEIGHT, OPTIONS_WIDTH, (LINES - OPTIONS_HEIGHT) / 2,
@@ -101,13 +105,15 @@ void options_init(CwTui *ctx) {
     rebuild_options_menu(ctx);
 }
 
-void options_deinit(CwTui *ctx) {
+void options_deinit(CwTui *ctx)
+{
     werase(o_win);
     wnoutrefresh(o_win);
     free_menu_ctx(o_win, o_menu, o_items, OPTIONS_HEIGHT - 4, false);
 }
 
-void options_input(CwTui *ctx) {
+void options_input(CwTui *ctx)
+{
     switch (ctx->ch) {
     case KEY_DOWN:
     case 'j':
@@ -143,11 +149,13 @@ void options_input(CwTui *ctx) {
     }
 }
 
-void options_frame(CwTui *ctx) {
+void options_frame(CwTui *ctx)
+{
     draw_win_frame(o_win, "Options", COLOR_BLUE);
     wnoutrefresh(o_win);
 }
 
-void options_resize(CwTui *ctx) {
+void options_resize(CwTui *ctx)
+{
     mvwin(o_win, (LINES - OPTIONS_HEIGHT) / 2, (COLS - OPTIONS_WIDTH) / 2);
 }

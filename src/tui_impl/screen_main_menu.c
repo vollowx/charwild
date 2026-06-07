@@ -13,7 +13,8 @@ ITEM **m_items;
 MENU *m_menu;
 WINDOW *m_win;
 
-void main_menu_init(CwTui *ctx) {
+void main_menu_init(CwTui *ctx)
+{
     info("[tui] screen = main_menu");
 
     char *labels[] = {
@@ -43,13 +44,15 @@ void main_menu_init(CwTui *ctx) {
     post_menu(m_menu);
 }
 
-void main_menu_deinit(CwTui *ctx) {
+void main_menu_deinit(CwTui *ctx)
+{
     werase(m_win);
     wnoutrefresh(m_win);
     free_menu_ctx(m_win, m_menu, m_items, MAIN_MENU_N_ITEMS, false);
 }
 
-void main_menu_input(CwTui *ctx) {
+void main_menu_input(CwTui *ctx)
+{
     switch (ctx->ch) {
     case KEY_DOWN:
     case 'j':
@@ -83,11 +86,13 @@ void main_menu_input(CwTui *ctx) {
     }
 }
 
-void main_menu_frame(CwTui *ctx) {
+void main_menu_frame(CwTui *ctx)
+{
     draw_win_frame(m_win, "charwild", COLOR_BLUE);
     wnoutrefresh(m_win);
 }
 
-void main_menu_resize(CwTui *ctx) {
+void main_menu_resize(CwTui *ctx)
+{
     mvwin(m_win, (LINES - MAIN_MENU_HEIGHT) / 2, (COLS - MAIN_MENU_WIDTH) / 2);
 }

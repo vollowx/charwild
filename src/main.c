@@ -6,7 +6,8 @@
 #include "core/options.h"
 #include "tui/tui_context.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     Cw core_ctx = {
         .options = {
             .fps = 60,
@@ -89,7 +90,7 @@ int main(int argc, char *argv[]) {
     endwin();
 
     if (1) { // Sanitizer, shut up
-        free_logs();
+        log_free_all();
 
         da_free(core_ctx.item_defs);
         da_free(core_ctx.entity_defs);
