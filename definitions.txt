@@ -7,6 +7,11 @@
 // equipment  : id  max_dur    symbol  fg      bg    name
 // placeable  : id  max_stack  symbol  fg      bg    name
 resource   :     0  64  cO  yellow  none  Copper Ore
+resource   :     0  64  cO  white   none  Iron Ore
+resource   :     0  64  cO  yellow  none  Gold Ore
+
+placeable  : 10000  64  ##  black   yellow Floating Bridge
+placeable  : 10001  64  ##  white   red    Brick
 
 consumable : 20000  24  aO  red     none  Apple
 consumable : 20001  24  ()  yellow  none  Orange
@@ -15,8 +20,6 @@ consumable : 20002  24  \o  yellow  none  Berry
 equipment  : 30000   0  A\  yellow  none  Copper Axe
 equipment  : 30001   0  A\  white   none  Iron Axe
 equipment  : 30002   0  A\  yellow  none  Gold Axe
-
-placeable  : 10000  64  ##  white   red   Brick
 
 [entities]
 // player : id  max_health  passable  symbol  fg      bg    name
@@ -30,7 +33,8 @@ animal :     5   15  0  ^C  yellow  none  Chicken
 
 [objects]
 // object : id  max_health  passable  symbol  fg      bg      name
-object :     1    1  1  ##  black  yellow  Wood Bridge
-object :     2    5  0  OO  black  white   Stone Boulder
-object :     3   10  0  &&  black  white   Furnace
-object : 10000   15  0  ##  black  red     Brick
+// id starting from 10000 to 19999 are `PLACEABLE` `Item`s
+object : 10000    1  1  ##  black  yellow  Floating Bridge
+object : 10001   15  0  ##  black  red     Brick
+object : 10002    5  0  OO  black  white   Stone Boulder
+object : 10003   10  0  &&  black  white   Furnace

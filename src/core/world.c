@@ -10,35 +10,32 @@
 #include "core/common.h"
 
 bool entity_move(Entity *e, Map *map, int dx, int dy) {
-    if (!e || !map)
-        return false;
+    assert(e && map);
 
     if (dx < 0 && e->x < (size_t)abs(dx))
         return false;
     if (dy < 0 && e->y < (size_t)abs(dy))
         return false;
 
-    size_t new_x = e->x + dx;
-    size_t new_y = e->y + dy;
+    size_t dest_x = e->x + dx, dest_y = e->y + dy;
 
-    if (new_x >= map->w || new_y >= map->h)
+    if (dest_x >= map->w || dest_y >= map->h)
         return false;
 
-    Cell *target = cell_ref(map, new_y, new_x);
+    Cell *dest = cell_ref(map, dest_y, dest_x);
 
-    if (target->object_id)
+    if (dest->entity != NULL)
         return false;
-    if (target->entity != NULL)
+    // 10000 is special, standing for the Floating Bridge
+    if (dest->object_id > 10000)
         return false;
-    if (target->elevation == ELEV_DEEP_WATER || target->elevation == ELEV_WATER)
+    if (dest->elevation <= ELEV_WATER && !(dest->object_id == 10000))
         return false;
 
     cell_ref(map, e->y, e->x)->entity = NULL;
-
-    e->x = new_x;
-    e->y = new_y;
-
-    target->entity = e;
+    e->x = dest_x;
+    e->y = dest_y;
+    dest->entity = e;
 
     return true;
 }
@@ -149,30 +146,28 @@ void world_free(World *w) {
 
 void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ctx) {
     assert(w && w->map);
-    Map *map = w->map;
 
-    float seed_ox = (float)(w->seed % 100000);
-    float seed_oy = (float)((w->seed / 100) % 100000);
+    float scale = 0.07f;
+    float seed_bias_x = (float)(w->seed % 100000);
+    float seed_bias_y = (float)((w->seed / 100) % 100000);
 
-    size_t pre_count = w->entities.count;
+    size_t original_entity_count = w->entities.count;
 
-    for (size_t y = y1; y < y2 && y < map->h; y++) {
-        for (size_t x = x1; x < x2 && x < map->w; x++) {
-            Cell *cell = cell_ref(map, y, x);
+    for (size_t y = y1; y < y2 && y < w->map->h; y++) {
+        for (size_t x = x1; x < x2 && x < w->map->w; x++) {
+            Cell *cell = cell_ref(w->map, y, x);
             if (cell->elevation != ELEV_NONE) continue;
 
-            float scale = 0.07f;
-            float raw_noise = snoise2((float)x * scale + seed_ox,
-                                      (float)y * scale + seed_oy);
-            float val = (raw_noise + 1.0f) * 0.5f;
+            float noise = snoise2((float)x * scale + seed_bias_x,
+                                  (float)y * scale + seed_bias_y);
 
-            if (val > 0.9f) {
+            if (noise > 0.9f) {
                 cell->elevation = ELEV_MOUNTAIN;
-            } else if (val > 0.85f) {
+            } else if (noise > 0.8f) {
                 cell->elevation = ELEV_HILL;
-            } else if (val > 0.4f) {
+            } else if (noise > -0.1f) {
                 cell->elevation = ELEV_GROUND;
-            } else if (val > 0.3f) {
+            } else if (noise > -0.5f) {
                 cell->elevation = ELEV_WATER;
             } else {
                 cell->elevation = ELEV_DEEP_WATER;
@@ -203,7 +198,7 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ct
         }
     }
 
-    world_link_entities_to_cells(w, pre_count);
+    world_link_entities_to_cells(w, original_entity_count);
 }
 
 Entity *world_link_entities_to_cells(World *w, size_t start) {

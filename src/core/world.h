@@ -76,6 +76,7 @@ typedef struct {
     Entities entities;
 } World;
 
+// `dy` for delta x, so as `dx`
 bool entity_move(Entity *e, Map *map, int dx, int dy);
 bool entity_place_object(Entity *e, Map *map, uint16_t object_id, int dx,
                          int dy);
