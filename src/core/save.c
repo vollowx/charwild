@@ -64,13 +64,12 @@ SaveResult world_save(const World *w, int slot)
         fprintf(fp, "entity : %u %zu %zu %d %s\n",
                 ent->def->id, ent->x, ent->y, ent->health,
                 ent->name[0] ? ent->name : "0");
-        da_foreach(ItemStack, item, &ent->inventory) {
+        da_foreach(Item, item, &ent->inventory) {
             if (item->def->id >= 30000)
                 fprintf(fp, "entity + %u %d %d\n",
-                        item->def->id, item->quantity, item->durability);
+                        item->def->id, item->stack, item->durability);
             else
-                fprintf(fp, "entity + %u %d\n",
-                        item->def->id, item->quantity);
+                fprintf(fp, "entity + %u %d\n", item->def->id, item->stack);
         }
     }
 
@@ -159,10 +158,27 @@ SaveResult world_load(World *w, int slot, Cw *ctx)
                     snprintf(entity.name, sizeof(entity.name), "%s", name);
                 da_append(&w->entities, entity);
                 current_entity = &w->entities.items[w->entities.count - 1];
-
             } else if (line.kind == CW_LINE_APPEND && sv_eq_cstr(line.tag, "entity")) {
-                // TODO: inventory items
-                (void)current_entity;
+                if (!current_entity)
+                    do_defer_and_return(SAVE_ERR_READ);
+
+                uint16_t item_id = 0;
+                int stack = 0;
+                int durability = 0;
+
+                int parsed = sscanf(line.val.ptr, "%hu %d %d", &item_id, &stack, &durability);
+                if (parsed < 2)
+                    do_defer_and_return(SAVE_ERR_READ);
+
+                ItemDef *idef = item_def_lookup(ctx->item_defs, item_id);
+                if (idef) {
+                    Item it = {
+                        .def = idef,
+                        .stack = stack,
+                        .durability = (parsed == 3) ? durability : 0
+                    };
+                    da_append(&current_entity->inventory, it);
+                }
             }
         }
     }

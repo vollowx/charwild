@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <curses.h>
 
 #include "core/log.h"
 #include "core/save.h"
@@ -225,9 +226,21 @@ void gameplay_frame(CwTui *ctx)
 
     wattrset(g_win, A_NORMAL);
 
-    mvwprintw(g_win, 1, 1, "x, y, z: %zu, %zu, %d", player->x, player->y,
+    mvwprintw(g_win, 1, 2, "x, y, z: %zu, %zu, %d", player->x, player->y,
               cell_ref(map, player->y, player->x)->elevation);
-    mvwprintw(g_win, 2, 1, "entities: %zu", ctx->core->current_world.entities.count);
+    mvwprintw(g_win, 2, 2, "entities: %zu", ctx->core->current_world.entities.count);
+
+    int inv_offset = 2;
+    da_foreach(Item, item, &player->inventory) {
+        short attr = COLOR_PAIR(fcp_get(item->def->fg, item->def->bg));
+        wattrset(g_win, attr);
+        wmove(g_win, scr_h - 2, inv_offset);
+        waddch(g_win, item->def->symbol[0]);
+        waddch(g_win, item->def->symbol[1]);
+        wprintw(g_win, "%3d", item->stack ? item->stack : item->durability);
+        wattroff(g_win, attr);
+        inv_offset += 6;
+    }
 
     wnoutrefresh(g_win);
 

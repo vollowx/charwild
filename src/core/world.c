@@ -9,6 +9,16 @@
 #include "core/world.h"
 #include "core/common.h"
 
+Item *entity_inventory_lookup(Entity *e, uint16_t def_id)
+{
+    assert(e && e->inventory.items);
+    da_foreach(Item, item, &e->inventory)
+        if (item->def && item->def->id == def_id)
+            return item;
+
+    return NULL;
+}
+
 bool entity_move(Entity *e, Map *m, int dx, int dy)
 {
     assert(e && m);
@@ -41,28 +51,41 @@ bool entity_move(Entity *e, Map *m, int dx, int dy)
     return true;
 }
 
-bool entity_place_object(Entity *e, Map *m, uint16_t object_id, int dx, int dy)
+bool entity_place_object(Entity *e, Map *m, uint16_t def_id, int dx, int dy)
 {
     assert(e && m && m->cells);
 
     int tx = (int)e->x + dx;
     int ty = (int)e->y + dy;
-
     if (tx < 0 || ty < 0 || (size_t)tx >= m->w || (size_t)ty >= m->h) {
-        error("entity_place_object: Target (%d, %d) out of bounds", tx, ty);
         return false;
     }
 
     Cell *target_cell = cell_ref(m, ty, tx);
-
-    if (target_cell->object_id != 0 && object_id != 0)
+    if (target_cell->object_id != 0 && def_id != 0)
         return false;
     if (target_cell->entity != NULL)
         return false;
 
-    target_cell->object_id = object_id;
+    Item *item = entity_inventory_lookup(e, def_id);
+    if (!item || item->stack <= 0)
+        return false;
+    target_cell->object_id = def_id;
+    item->stack -= 1;
+    // TODO: bool entity_remove_item(Entity *e, uint16_t def_id, int n)
 
     return true;
+}
+
+void entity_aquire_item(Entity *e, uint16_t def_id, int stack, Cw *ctx)
+{
+    assert(e);
+    Item item = {
+        .def = item_def_lookup(ctx->item_defs, def_id),
+        .stack = stack,
+        0,
+    };
+    da_append(&e->inventory, item);
 }
 
 Map *map_alloc(size_t height, size_t width)
@@ -113,7 +136,7 @@ void world_init(World *w, Cw *ctx)
     strncpy(player.name, "Guy", sizeof(player.name) - 1);
 
     player.inventory.count = 0;
-    player.inventory.capacity = 8;
+    player.inventory.capacity = 32;
     player.inventory.items = malloc(sizeof(Item) * player.inventory.capacity);
 
     da_append(&w->entities, player);
