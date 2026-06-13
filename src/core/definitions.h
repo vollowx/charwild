@@ -26,7 +26,10 @@ typedef struct {
     uint16_t id;
     ItemType type;
     char name[32];
-    int max_stack;
+    union {
+        bool stackable;
+        int  stack_max;
+    };
 
     char symbol[2];
     short fg, bg;

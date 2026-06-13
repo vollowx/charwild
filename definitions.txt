@@ -7,8 +7,8 @@
 // equipment  : id  max_dur    symbol  fg      bg    name
 // placeable  : id  max_stack  symbol  fg      bg    name
 resource   :     0  64  cO  yellow  none  Copper Ore
-resource   :     0  64  cO  white   none  Iron Ore
-resource   :     0  64  cO  yellow  none  Gold Ore
+resource   :     1  64  cO  white   none  Iron Ore
+resource   :     2  64  cO  yellow  none  Gold Ore
 
 placeable  : 10000  64  ##  black   yellow Floating Bridge
 placeable  : 10001  64  ##  white   red    Brick

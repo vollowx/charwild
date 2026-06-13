@@ -114,8 +114,7 @@ void world_init(World *w, Cw *ctx)
 
     player.inventory.count = 0;
     player.inventory.capacity = 8;
-    player.inventory.items =
-        malloc(sizeof(ItemStack) * player.inventory.capacity);
+    player.inventory.items = malloc(sizeof(Item) * player.inventory.capacity);
 
     da_append(&w->entities, player);
 

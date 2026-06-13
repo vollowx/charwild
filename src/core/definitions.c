@@ -61,9 +61,10 @@ bool definitions_load(
             ItemDef def = {0};
             char fg_name[32] = {0}, bg_name[32] = {0}, name[32] = {0};
             if (sscanf(line.val.ptr, "%hu %d %7s %31s %31s %31[^\n]",
-                       &def.id, &def.max_stack, def.symbol,
+                       &def.id, &def.stack_max, def.symbol,
                        fg_name, bg_name, name) != 6)
                 do_defer_and_return(false);
+            if (def.stack_max == 0) def.stackable = false;
             if      (sv_eq_cstr(line.tag, "resource"))   def.type = ITEM_RESOURCE;
             else if (sv_eq_cstr(line.tag, "placeable"))  def.type = ITEM_PLACEABLE;
             else if (sv_eq_cstr(line.tag, "consumable")) def.type = ITEM_CONSUMABLE;

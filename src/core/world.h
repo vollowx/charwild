@@ -30,15 +30,15 @@ typedef enum {
 
 typedef struct {
     ItemDef *def;
-    int quantity;
+    int stack; // Quantity of the item stack
     int durability; // Only used if def->type == ITEM_EQUIPMENT
-} ItemStack;
+} Item;
 
 typedef struct {
-    ItemStack *items;
+    Item *items;
     size_t count;
     size_t capacity;
-} ItemStacks;
+} Items;
 
 typedef struct {
     EntityDef *def;
@@ -46,7 +46,7 @@ typedef struct {
     int health;
     uint64_t x, y;
 
-    ItemStacks inventory;
+    Items inventory;
 } Entity;
 
 typedef struct {
