@@ -32,13 +32,19 @@ bool entity_move(Entity *e, Map *m, int dx, int dy)
 
     Cell *dest = cell_ref(m, dest_y, dest_x);
 
-    if (dest->entity != NULL)
-        return false;
     // 10000 is special, standing for the Floating Bridge
     if (dest->object_id > 10000)
         return false;
     if (dest->elevation <= ELEV_WATER && !(dest->object_id == 10000))
         return false;
+
+    if (dest->entity != NULL){
+        // Chance to push it away :)
+        if ((rand() % 100) < 3) {
+            if (!entity_move(dest->entity, m, dx, dy))
+                return false;
+        } else return false;
+    }
 
     cell_ref(m, e->y, e->x)->entity = NULL;
     e->x = dest_x;
@@ -240,7 +246,22 @@ Entity *world_link_entities_to_cells(World *w, size_t start)
 
 bool world_tick(World *w, double dt)
 {
-    bool updated = false;
+    bool updated = true;
+
+    // TODO: dedicated behavior functions for each kind of animal
+    da_foreach(Entity, ent, &w->entities) {
+        if (ent->def->type != ENTITY_ANIMAL)
+            continue;
+
+        if ((rand() % 100) < 3) {
+            int dx = (rand() % 3) - 1, dy = (rand() % 3) - 1;
+            if (dx == 0 && dy == 0)
+                continue;
+
+            bool moved = entity_move(ent, w->map, dx, dy);
+            updated = moved || updated;
+        }
+    }
 
     return updated;
 }

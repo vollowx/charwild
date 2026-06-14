@@ -33,6 +33,8 @@ int main(int argc, char *argv[])
     signal(SIGABRT, sig_handler);
 #endif
 
+    srand((unsigned int) time(NULL));
+
     Cw core_ctx = {
         .options = {
             .fps = 60,
