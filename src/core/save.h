@@ -2,7 +2,6 @@
 #define SAVE_H
 
 #include <stdint.h>
-
 #include "core/world.h"
 
 typedef struct Cw Cw;

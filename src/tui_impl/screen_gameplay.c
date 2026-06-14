@@ -1,6 +1,3 @@
-#include <assert.h>
-#include <curses.h>
-
 #include "core/log.h"
 #include "core/save.h"
 #include "core/common.h"

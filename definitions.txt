@@ -1,17 +1,18 @@
 // Definitions
 // key : id fields...
 
-[items]
 // resource   : id  max_stack  symbol  fg      bg    name
+// placeable  : id  max_stack  symbol  fg      bg    name
 // consumable : id  max_stack  symbol  fg      bg    name
 // equipment  : id  max_dur    symbol  fg      bg    name
-// placeable  : id  max_stack  symbol  fg      bg    name
-resource   :     0  64  cO  yellow  none  Copper Ore
-resource   :     1  64  cO  white   none  Iron Ore
-resource   :     2  64  cO  yellow  none  Gold Ore
+[items]
+resource   :     0  999        cO  yellow    none    Copper Ore
+resource   :     1  999        cO   white    none    Iron Ore
+resource   :     2  999        cO  yellow    none    Gold Ore
 
-placeable  : 10000  64  ##  black   yellow Floating Bridge
-placeable  : 10001  64  ##  white   red    Brick
+placeable  : 10000  999        ##   black  yellow    Floating Bridge
+placeable  : 10001  999        ##   white     red    Brick
+placeable  : 10003  999        &&   black   white    Furnace
 
 consumable : 20000  24  aO  red     none  Apple
 consumable : 20001  24  ()  yellow  none  Orange
@@ -21,9 +22,9 @@ equipment  : 30000   0  A\  yellow  none  Copper Axe
 equipment  : 30001   0  A\  white   none  Iron Axe
 equipment  : 30002   0  A\  yellow  none  Gold Axe
 
-[entities]
 // player : id  max_health  passable  symbol  fg      bg    name
 // animal : id  max_health  passable  symbol  fg      bg    name
+[entities]
 player :     0  100  0  \@  red     none  You!
 animal :     1   20  0  Mo  black   none  Cow
 animal :     2   20  0  qp  red     none  Pig
@@ -31,9 +32,9 @@ animal :     3   20  0  wm  white   none  Sheep
 animal :     4   25  0  Wm  white   none  Goat
 animal :     5   15  0  ^C  yellow  none  Chicken
 
-[objects]
 // object : id  max_health  passable  symbol  fg      bg      name
 // id starting from 10000 to 19999 are `PLACEABLE` `Item`s
+[objects]
 object : 10000    1  1  ##  black  yellow  Floating Bridge
 object : 10001   15  0  ##  black  red     Brick
 object : 10002    5  0  OO  black  white   Stone Boulder

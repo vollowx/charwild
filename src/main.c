@@ -1,12 +1,38 @@
 #include <time.h>
+#include <signal.h>
+#include <unistd.h>
 #include "core/common.h"
 #include "core/log.h"
 #include "core/definitions.h"
 #include "core/options.h"
 #include "tui/tui_context.h"
 
+#ifdef CW_USE_ASAN
+void __asan_on_error(void)
+{
+    if (!isendwin())
+        endwin();
+}
+#else
+static void sig_handler(int sig)
+{
+    if (!isendwin())
+        endwin();
+
+    signal(sig, SIG_DFL);
+    raise(sig);
+}
+#endif
+
 int main(int argc, char *argv[])
 {
+#ifndef CW_USE_ASAN
+    signal(SIGSEGV, sig_handler);
+    signal(SIGINT,  sig_handler);
+    signal(SIGTERM, sig_handler);
+    signal(SIGABRT, sig_handler);
+#endif
+
     Cw core_ctx = {
         .options = {
             .fps = 60,
@@ -22,7 +48,7 @@ int main(int argc, char *argv[])
     };
 
     initscr();
-    cbreak();
+    raw();
     noecho();
     keypad(stdscr, TRUE);
     nodelay(stdscr, TRUE);

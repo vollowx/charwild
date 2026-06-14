@@ -1,5 +1,4 @@
 #include <stdio.h>
-
 #include "core/log.h"
 #include "core/options.h"
 #include "core/common.h"

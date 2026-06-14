@@ -1,11 +1,8 @@
 #include <assert.h>
 #include <time.h>
-
 #include <ncurses.h>
 #include <simplexnoise1234.h>
-
 #include "core/context.h"
-#include "core/log.h"
 #include "core/world.h"
 #include "core/common.h"
 

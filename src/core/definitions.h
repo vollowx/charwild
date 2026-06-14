@@ -4,7 +4,6 @@
 #define DEFINITIONS_H
 
 #include <stdint.h>
-
 #include <ncurses.h>
 
 typedef enum {

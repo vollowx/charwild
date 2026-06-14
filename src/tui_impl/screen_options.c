@@ -1,5 +1,4 @@
 #include <menu.h>
-
 #include "core/common.h"
 #include "core/log.h"
 #include "core/options.h"

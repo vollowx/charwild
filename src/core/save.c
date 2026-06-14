@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-
 #include "core/save.h"
 #include "core/common.h"
 #include "core/context.h"

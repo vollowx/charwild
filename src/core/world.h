@@ -4,9 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
 #include <ncurses.h>
-
 #include "core/definitions.h"
 
 typedef struct Cw Cw;

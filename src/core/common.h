@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "aide.h"
 
 #define CW_VERSION_MAJOR 0
