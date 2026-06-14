@@ -70,10 +70,12 @@ typedef enum {
 struct CwTui {
     int ch;
     double frame_time;
-    CwTuiState cur_state;
+    CwTuiState current_state;
     CwTuiState next_state;
-    CwTuiScreen *cur_screen;
+    CwTuiScreen *current_screen;
     Cw *core;
 };
+
+double calculate_frame_time(struct timespec *last_frame);
 
 #endif // TUI_CONTEXT_H

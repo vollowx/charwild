@@ -1,5 +1,4 @@
 #include <time.h>
-
 #include "core/common.h"
 #include "core/log.h"
 #include "core/definitions.h"
@@ -17,7 +16,7 @@ int main(int argc, char *argv[])
         .current_slot = 0,
     };
     CwTui ctx = {
-        .cur_state = (CwTuiState)-1,
+        .current_state = (CwTuiState)-1,
         .next_state = TUI_STATE_MAIN_MENU,
         .core = &core_ctx,
     };
@@ -30,9 +29,9 @@ int main(int argc, char *argv[])
     curs_set(0);
 
     if (!has_colors()) {
-        printw("Your terminal does not support color. Press any key to quit.");
-        getch();
-        return 1;
+        endwin();
+        printf("Your terminal does not support color, quitting...\n");
+        return 30;
     }
 
     start_color();
@@ -48,54 +47,47 @@ int main(int argc, char *argv[])
 
     log_init(&ctx);
 
-    struct timespec last_frame, current_frame;
+    struct timespec last_frame;
     clock_gettime(CLOCK_MONOTONIC, &last_frame);
 
     while (ctx.next_state != TUI_STATE_QUIT) {
-        clock_gettime(CLOCK_MONOTONIC, &current_frame);
-        ctx.frame_time = (current_frame.tv_sec - last_frame.tv_sec) +
-                         (current_frame.tv_nsec - last_frame.tv_nsec) / 1e9;
-        last_frame = current_frame;
+        ctx.frame_time = calculate_frame_time(&last_frame);
 
-        if (ctx.next_state != ctx.cur_state) {
-            if (ctx.cur_screen) {
-                ctx.cur_screen->deinit(&ctx);
-            }
+        if (ctx.next_state != ctx.current_state) {
+            if (ctx.current_screen)
+                ctx.current_screen->deinit(&ctx);
 
-            ctx.cur_state = ctx.next_state;
-            ctx.cur_screen = CW_SCREENS[ctx.cur_state];
+            ctx.current_state = ctx.next_state;
+            ctx.current_screen = CW_SCREENS[ctx.current_state];
 
-            ctx.cur_screen->init(&ctx);
+            ctx.current_screen->init(&ctx);
         }
 
         ctx.ch = getch();
         if (ctx.ch == KEY_RESIZE) {
             erase();
-            ctx.cur_screen->resize(&ctx);
+            ctx.current_screen->resize(&ctx);
             log_resize(&ctx);
             refresh();
         } else {
-            ctx.cur_screen->input(&ctx);
+            ctx.current_screen->input(&ctx);
         }
 
-        ctx.cur_screen->frame(&ctx);
+        ctx.current_screen->frame(&ctx);
         log_frame(&ctx);
 
         doupdate();
         napms(1000 / core_ctx.options.fps);
     }
 
-    ctx.cur_screen->deinit(&ctx);
+    ctx.current_screen->deinit(&ctx);
     log_deinit(&ctx);
     endwin();
 
-    if (1) { // Sanitizer, shut up
-        log_free_all();
-
-        da_free(core_ctx.item_defs);
-        da_free(core_ctx.entity_defs);
-        da_free(core_ctx.object_defs);
-    }
+    log_free_all();
+    da_free(core_ctx.item_defs);
+    da_free(core_ctx.entity_defs);
+    da_free(core_ctx.object_defs);
 
     return 0;
 }

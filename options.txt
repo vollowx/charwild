@@ -1,4 +1,4 @@
 fps       = 60
 log_level = 0
-show_log  = 0
+show_log  = 1
 save_log  = 0

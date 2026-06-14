@@ -106,7 +106,8 @@ static inline bool cw_next_line(FILE *fp, char *buf, size_t bufsz, CwLine *out)
         wattron(win, COLOR_PAIR(fcp_get(color, -1)));                          \
         box(win, 0, 0);                                                        \
         wattron(win, A_BOLD);                                                  \
-        mvwprintw(win, 0, 3, " %s ", title);                                   \
+        if (title != NULL)                                                     \
+            mvwprintw(win, 0, 3, " %s ", title);                               \
         wattroff(win, COLOR_PAIR(fcp_get(color, -1)) | A_BOLD);                \
     } while (0)
 
