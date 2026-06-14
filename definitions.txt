@@ -12,6 +12,7 @@ resource   :     2  999        cO  yellow    none    Gold Ore
 
 placeable  : 10000  999        ##   black  yellow    Floating Bridge
 placeable  : 10001  999        ##   white     red    Brick
+placeable  : 10002  999        OO   black   white    Stone Boulder
 placeable  : 10003  999        &&   black   white    Furnace
 
 consumable : 20000  24  aO  red     none  Apple

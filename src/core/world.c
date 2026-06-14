@@ -246,7 +246,7 @@ Entity *world_link_entities_to_cells(World *w, size_t start)
 
 bool world_tick(World *w, double dt)
 {
-    bool updated = true;
+    bool updated = false;
 
     // TODO: dedicated behavior functions for each kind of animal
     da_foreach(Entity, ent, &w->entities) {
