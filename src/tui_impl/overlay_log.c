@@ -11,9 +11,9 @@ void log_init(CwTui *ctx)
 {
     info("[tui] overlay += log");
 
-    log_color_pairs[LOG_INFO]    = fcp_get(COLOR_BLUE, -1);
-    log_color_pairs[LOG_WARNING] = fcp_get(COLOR_YELLOW, -1);
-    log_color_pairs[LOG_ERROR]   = fcp_get(COLOR_RED, -1);
+    log_color_pairs[CW_LOG_INFO]    = fcp_get(COLOR_BLUE, -1);
+    log_color_pairs[CW_LOG_WARNING] = fcp_get(COLOR_YELLOW, -1);
+    log_color_pairs[CW_LOG_ERROR]   = fcp_get(COLOR_RED, -1);
 
     int height = LOG_UI_CAPACITY + 1;
     l_win = newwin(height, COLS, LINES - height, 0);

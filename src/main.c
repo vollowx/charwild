@@ -1,5 +1,4 @@
 #include <time.h>
-#include <signal.h>
 #include <unistd.h>
 #include "core/common.h"
 #include "core/log.h"
@@ -14,6 +13,7 @@ void __asan_on_error(void)
         endwin();
 }
 #else
+#include <signal.h>
 static void sig_handler(int sig)
 {
     if (!isendwin())
