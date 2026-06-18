@@ -7,6 +7,7 @@ typedef struct {
     int log_level;
     bool save_log;
     bool show_log;
+    bool show_debug_info;
     unsigned short fps;
 } CwOptions;
 

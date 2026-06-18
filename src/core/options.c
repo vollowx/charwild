@@ -19,6 +19,7 @@ void options_load(CwOptions *opts, const char *path)
         if      (sv_eq_cstr(line.tag, "log_level")) opts->log_level = sv_to_int(line.val);
         else if (sv_eq_cstr(line.tag, "save_log"))  opts->save_log  = (bool)sv_to_int(line.val);
         else if (sv_eq_cstr(line.tag, "show_log"))  opts->show_log  = (bool)sv_to_int(line.val);
+        else if (sv_eq_cstr(line.tag, "show_debug_info")) opts->show_debug_info = (bool)sv_to_int(line.val);
         else if (sv_eq_cstr(line.tag, "fps"))       opts->fps       = (unsigned short)sv_to_int(line.val);
     }
     fclose(fp);
@@ -33,10 +34,11 @@ bool options_save(CwOptions *opts, const char *path)
     if (!fp)
         do_defer_and_return(false);
 
-    fprintf(fp, "fps       = %d\n", opts->fps);
-    fprintf(fp, "log_level = %d\n", opts->log_level);
-    fprintf(fp, "show_log  = %d\n", (int)opts->show_log);
-    fprintf(fp, "save_log  = %d\n", (int)opts->save_log);
+    fprintf(fp, "log_level       = %d\n", opts->log_level);
+    fprintf(fp, "save_log        = %d\n", (int)opts->save_log);
+    fprintf(fp, "show_log        = %d\n", (int)opts->show_log);
+    fprintf(fp, "show_debug_info = %d\n", (int)opts->show_debug_info);
+    fprintf(fp, "fps             = %d\n", opts->fps);
 
 defer:
     if (fp)  fclose(fp);

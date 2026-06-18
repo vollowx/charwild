@@ -224,13 +224,6 @@ void gameplay_frame(CwTui *ctx)
 
     wnoutrefresh(win);
 
-    werase(debug_info_win);
-    draw_win_frame(debug_info_win, "de Buggin'", COLOR_RED);
-    mvwprintw(debug_info_win, 1, 1, "x, y, z: %zu, %zu, %d", player->x, player->y,
-              cell_ref(map, player->y, player->x)->elevation);
-    mvwprintw(debug_info_win, 2, 1, "entities: %zu", ctx->core->current_world.entities.count);
-    wnoutrefresh(debug_info_win);
-
     werase(inventory_win);
     draw_win_frame(inventory_win, NULL, COLOR_CYAN);
     int ith = 0;
@@ -244,6 +237,25 @@ void gameplay_frame(CwTui *ctx)
         wprintw( inventory_win, " %3d", item->stack ? item->stack : item->durability);
     }
     wnoutrefresh(inventory_win);
+
+    static bool was_showing = false;
+    if (!ctx->core->options.show_debug_info) {
+        if (was_showing) {
+            werase(debug_info_win);
+            wnoutrefresh(debug_info_win);
+            was_showing = false;
+        }
+        needs_redraw = false;
+        return;
+    }
+    was_showing = true;
+
+    werase(debug_info_win);
+    draw_win_frame(debug_info_win, "de Buggin'", COLOR_RED);
+    mvwprintw(debug_info_win, 1, 1, "x, y, z: %zu, %zu, %d", player->x, player->y,
+              cell_ref(map, player->y, player->x)->elevation);
+    mvwprintw(debug_info_win, 2, 1, "entities: %zu", ctx->core->current_world.entities.count);
+    wnoutrefresh(debug_info_win);
 
     needs_redraw = false;
 }

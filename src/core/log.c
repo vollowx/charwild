@@ -31,7 +31,8 @@ void log_add(LogLevel level, const char *fmt, ...)
 void log_print_all(FILE *stream)
 {
     da_foreach(Log, it, &logs)
-        fprintf(stream, "%s: %s\n", log_labels[it->level], it->msg);
+        if (it->level > CW_LOG_INFO)
+            fprintf(stream, "%s: %s\n", log_labels[it->level], it->msg);
 }
 
 void log_free_all(void)

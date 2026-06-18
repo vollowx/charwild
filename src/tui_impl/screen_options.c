@@ -61,19 +61,23 @@ void rebuild_options_menu(CwTui *ctx)
 
     items[i++] = new_caption("  Other");
 
-    static char log_level_line[64], log_show_line[64], log_save_line[64];
+    static char log_level_line[64], save_log_line[64], show_log_line[64],
+                show_debug_info_line[64];
     const char *lvls[] = {"<Information>", "<Warning>", "<Error>"};
 
-    format_menu_item(log_level_line, sizeof(log_level_line), "Show log level",
+    format_menu_item(log_level_line, sizeof(log_level_line), "Log level",
                      lvls[ctx->core->options.log_level]);
-    format_menu_item(log_show_line, sizeof(log_show_line), "Show log window",
-                     ctx->core->options.show_log ? "[x]" : "[ ]");
-    format_menu_item(log_save_line, sizeof(log_save_line), "Save log locally",
+    format_menu_item(save_log_line, sizeof(save_log_line), "Save logs locally",
                      ctx->core->options.save_log ? "[x]" : "[ ]");
+    format_menu_item(show_log_line, sizeof(show_log_line), "Show logs",
+                     ctx->core->options.show_log ? "[x]" : "[ ]");
+    format_menu_item(show_debug_info_line, sizeof(show_debug_info_line), "Show debug info",
+                     ctx->core->options.show_debug_info ? "[x]" : "[ ]");
 
     items[i++] = new_item(log_level_line, "");
-    items[i++] = new_item(log_show_line, "");
-    items[i++] = new_item(log_save_line, "");
+    items[i++] = new_item(save_log_line, "");
+    items[i++] = new_item(show_log_line, "");
+    items[i++] = new_item(show_debug_info_line, "");
     items[i++] = new_item("Clear logs", "");
     items[i++] = new_item("Clear local logs", "");
 
@@ -130,11 +134,14 @@ void options_input(CwTui *ctx)
         ITEM *cur = current_item(menu);
         const char *name = item_name(cur);
 
-        if (strstr(name, "Show log level")) {
+        if (strstr(name, "Log level")) {
             ctx->core->options.log_level = (ctx->core->options.log_level + 1) % 3;
             rebuild_options_menu(ctx);
-        } else if (strstr(name, "Show log window")) {
+        } else if (strstr(name, "Show logs")) {
             ctx->core->options.show_log = !ctx->core->options.show_log;
+            rebuild_options_menu(ctx);
+        } else if (strstr(name, "Show debug info")) {
+            ctx->core->options.show_debug_info = !ctx->core->options.show_debug_info;
             rebuild_options_menu(ctx);
         } else if (strcmp(name, "Save") == 0) {
             options_save(&ctx->core->options, CW_OPTIONS_PATH);

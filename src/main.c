@@ -11,6 +11,7 @@ void __asan_on_error(void)
 {
     if (!isendwin())
         endwin();
+    log_print_all(stderr);
 }
 #else
 #include <signal.h>
@@ -18,6 +19,7 @@ static void sig_handler(int sig)
 {
     if (!isendwin())
         endwin();
+    log_print_all(stderr);
 
     signal(sig, SIG_DFL);
     raise(sig);
@@ -112,7 +114,7 @@ int main(int argc, char *argv[])
     log_deinit(&ctx);
     endwin();
 
-    log_print_all(stdout);
+    log_print_all(stderr);
     log_free_all();
     da_free(core_ctx.item_defs);
     da_free(core_ctx.entity_defs);
