@@ -8,9 +8,9 @@
 #define OPTIONS_HEIGHT 32
 #define OPTIONS_WIDTH 56
 
-static ITEM **o_items = NULL;
-static MENU *o_menu = NULL;
-static WINDOW *o_win = NULL;
+static ITEM **items = NULL;
+static MENU *menu = NULL;
+static WINDOW *win = NULL;
 
 ITEM *new_caption(const char *title)
 {
@@ -32,34 +32,34 @@ void rebuild_options_menu(CwTui *ctx)
 {
     int current_idx = 0;
 
-    if (o_menu && o_items) { // Not first run
-        ITEM *cur = current_item(o_menu);
+    if (menu && items) { // Not first run
+        ITEM *cur = current_item(menu);
         if (cur) {
             current_idx = item_index(cur);
         }
-        unpost_menu(o_menu);
-        free_menu(o_menu);
-        o_menu = NULL;
+        unpost_menu(menu);
+        free_menu(menu);
+        menu = NULL;
 
         for (int i = 0; i < OPTIONS_HEIGHT - 4 + 1; i++) {
-            free_item(o_items[i]);
+            free_item(items[i]);
         }
-        free(o_items);
-        o_items = NULL;
+        free(items);
+        items = NULL;
     }
 
-    o_items = (ITEM **)calloc(OPTIONS_HEIGHT - 4 + 1, sizeof(ITEM *));
+    items = (ITEM **)calloc(OPTIONS_HEIGHT - 4 + 1, sizeof(ITEM *));
     int i = 0;
 
-    o_items[i++] = new_caption("  Game");
-    o_items[i++] = new_item("Foo", "");
-    o_items[i++] = new_item("Bar", "");
-    o_items[i++] = new_item("Baz", "");
+    items[i++] = new_caption("  Game");
+    items[i++] = new_item("Foo", "");
+    items[i++] = new_item("Bar", "");
+    items[i++] = new_item("Baz", "");
 
-    o_items[i++] = new_caption("  Display");
-    o_items[i++] = new_item("Zoom", "");
+    items[i++] = new_caption("  Display");
+    items[i++] = new_item("Zoom", "");
 
-    o_items[i++] = new_caption("  Other");
+    items[i++] = new_caption("  Other");
 
     static char log_level_line[64], log_show_line[64], log_save_line[64];
     const char *lvls[] = {"<Information>", "<Warning>", "<Error>"};
@@ -71,44 +71,44 @@ void rebuild_options_menu(CwTui *ctx)
     format_menu_item(log_save_line, sizeof(log_save_line), "Save log locally",
                      ctx->core->options.save_log ? "[x]" : "[ ]");
 
-    o_items[i++] = new_item(log_level_line, "");
-    o_items[i++] = new_item(log_show_line, "");
-    o_items[i++] = new_item(log_save_line, "");
-    o_items[i++] = new_item("Clear logs", "");
-    o_items[i++] = new_item("Clear local logs", "");
+    items[i++] = new_item(log_level_line, "");
+    items[i++] = new_item(log_show_line, "");
+    items[i++] = new_item(log_save_line, "");
+    items[i++] = new_item("Clear logs", "");
+    items[i++] = new_item("Clear local logs", "");
 
-    o_items[i++] = new_caption(" ");
-    o_items[i++] = new_item("Save", "");
-    o_items[i++] = new_item("Cancel", "");
-    o_items[i++] = NULL;
+    items[i++] = new_caption(" ");
+    items[i++] = new_item("Save", "");
+    items[i++] = new_item("Cancel", "");
+    items[i++] = NULL;
 
-    o_menu = new_menu(o_items);
-    set_menu_win(o_menu, o_win);
-    set_menu_sub(o_menu,
-                 derwin(o_win, OPTIONS_HEIGHT - 4, OPTIONS_WIDTH - 4, 2, 1));
-    set_menu_mark(o_menu, " > ");
-    set_menu_fore(o_menu,
+    menu = new_menu(items);
+    set_menu_win(menu, win);
+    set_menu_sub(menu,
+                 derwin(win, OPTIONS_HEIGHT - 4, OPTIONS_WIDTH - 4, 2, 1));
+    set_menu_mark(menu, " > ");
+    set_menu_fore(menu,
                   COLOR_PAIR(fcp_get(COLOR_BLUE, -1)) | A_BOLD | A_REVERSE);
-    set_current_item(o_menu, o_items[current_idx]);
+    set_current_item(menu, items[current_idx]);
 
-    post_menu(o_menu);
+    post_menu(menu);
 }
 
 void options_init(CwTui *ctx)
 {
     info("[tui] screen = options");
 
-    o_win = newwin(OPTIONS_HEIGHT, OPTIONS_WIDTH, (LINES - OPTIONS_HEIGHT) / 2,
+    win = newwin(OPTIONS_HEIGHT, OPTIONS_WIDTH, (LINES - OPTIONS_HEIGHT) / 2,
                    (COLS - OPTIONS_WIDTH) / 2);
-    keypad(o_win, TRUE);
+    keypad(win, TRUE);
     rebuild_options_menu(ctx);
 }
 
 void options_deinit(CwTui *ctx)
 {
-    werase(o_win);
-    wnoutrefresh(o_win);
-    free_menu_ctx(o_win, o_menu, o_items, OPTIONS_HEIGHT - 4, false);
+    werase(win);
+    wnoutrefresh(win);
+    free_menu_ctx(win, menu, items, OPTIONS_HEIGHT - 4, false);
 }
 
 void options_input(CwTui *ctx)
@@ -116,18 +116,18 @@ void options_input(CwTui *ctx)
     switch (ctx->ch) {
     case KEY_DOWN:
     case 'j':
-        menu_driver(o_menu, REQ_DOWN_ITEM);
+        menu_driver(menu, REQ_DOWN_ITEM);
         break;
     case KEY_UP:
     case 'k':
-        menu_driver(o_menu, REQ_UP_ITEM);
+        menu_driver(menu, REQ_UP_ITEM);
         break;
     case 'q':
         options_load(&ctx->core->options, CW_OPTIONS_PATH);
         ctx->next_state = TUI_STATE_MAIN_MENU;
         break;
     case 10: {
-        ITEM *cur = current_item(o_menu);
+        ITEM *cur = current_item(menu);
         const char *name = item_name(cur);
 
         if (strstr(name, "Show log level")) {
@@ -150,11 +150,11 @@ void options_input(CwTui *ctx)
 
 void options_frame(CwTui *ctx)
 {
-    draw_win_frame(o_win, "Options", COLOR_BLUE);
-    wnoutrefresh(o_win);
+    draw_win_frame(win, "Options", COLOR_BLUE);
+    wnoutrefresh(win);
 }
 
 void options_resize(CwTui *ctx)
 {
-    mvwin(o_win, (LINES - OPTIONS_HEIGHT) / 2, (COLS - OPTIONS_WIDTH) / 2);
+    mvwin(win, (LINES - OPTIONS_HEIGHT) / 2, (COLS - OPTIONS_WIDTH) / 2);
 }

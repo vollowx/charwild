@@ -6,7 +6,7 @@ SRC := $(shell find src -name '*.c') thirdparty/simplexnoise1234.c
 OBJ := $(patsubst %.c,build/%.o,$(SRC))
 
 CC       ?= gcc
-CFLAGS   := -Wall -Wextra -Wpedantic -Wno-unused-parameter -I$(SRC_DIR) -Ithirdparty
+CFLAGS   := -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -I$(SRC_DIR) -Ithirdparty
 DEPFLAGS := -MMD -MP
 LDFLAGS  :=
 LDLIBS   := -lncurses -lmenu

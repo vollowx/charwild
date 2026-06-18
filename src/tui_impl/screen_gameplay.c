@@ -12,15 +12,13 @@
 
 typedef struct {
     char symbol;
-    // char symbol[2];
     short fg;
     short bg;
 
     short cp; // Registered color pair at runtime
 } CellVisualDef;
 
-// clang-format off
-static CellVisualDef CELL_VISUAL_DB[] = {
+static CellVisualDef cell_visual_defs[] = {
     [ELEV_NONE]       = { '?', COLOR_BLACK, COLOR_MAGENTA},
     [ELEV_DEEP_WATER] = { '~', COLOR_BLACK, COLOR_BLUE},
     [ELEV_WATER]      = { ' ', COLOR_WHITE, COLOR_BLUE},
@@ -28,24 +26,23 @@ static CellVisualDef CELL_VISUAL_DB[] = {
     [ELEV_HILL]       = { '^', COLOR_BLACK, COLOR_GREEN},
     [ELEV_MOUNTAIN]   = { '*', COLOR_BLACK, COLOR_GREEN},
 };
-// clang-format on
 
-WINDOW *gp_win = NULL;
-WINDOW *gp_inventory_win = NULL;
-WINDOW *gp_debug_info_win = NULL;
-bool gp_need_redraw = true;
+static WINDOW *win = NULL;
+static WINDOW *inventory_win = NULL;
+static WINDOW *debug_info_win = NULL;
+static bool needs_redraw = true;
 
 void gameplay_init(CwTui *ctx)
 {
     info("[tui] screen = gameplay");
 
-    static bool first_run = true;
-    if (first_run) {
-        first_run = false;
+    static bool is_first_run = true;
+    if (is_first_run) {
+        is_first_run = false;
 
         for (int i = 0; i < _elevation_count; ++i)
-            CELL_VISUAL_DB[i].cp =
-                fcp_get(CELL_VISUAL_DB[i].fg, CELL_VISUAL_DB[i].bg);
+            cell_visual_defs[i].cp =
+                fcp_get(cell_visual_defs[i].fg, cell_visual_defs[i].bg);
     }
 
     if (world_load(&ctx->core->current_world, ctx->core->current_slot, ctx->core) != SAVE_OK) {
@@ -53,10 +50,10 @@ void gameplay_init(CwTui *ctx)
         return;
     }
 
-    gp_win            = newwin(LINES, COLS, 0, 0);
-    gp_inventory_win  = newwin(11, 8, 1, 2);
-    gp_debug_info_win = newwin(4, 32, 1, COLS - 34);
-    keypad(gp_win, TRUE);
+    win            = newwin(LINES, COLS, 0, 0);
+    inventory_win  = newwin(11, 8, 1, 2);
+    debug_info_win = newwin(4, 32, 1, COLS - 34);
+    keypad(win, TRUE);
 }
 
 void gameplay_deinit(CwTui *ctx)
@@ -65,15 +62,15 @@ void gameplay_deinit(CwTui *ctx)
     world_free(&ctx->core->current_world);
     ctx->core->current_world = (World){0};
 
-    werase(gp_win);
-    wnoutrefresh(gp_win);
-    delwin(gp_win);
-    gp_win = NULL;
-    delwin(gp_inventory_win);
-    gp_inventory_win = NULL;
-    delwin(gp_debug_info_win);
-    gp_debug_info_win = NULL;
-    gp_need_redraw = true;
+    werase(win);
+    wnoutrefresh(win);
+    delwin(win);
+    win = NULL;
+    delwin(inventory_win);
+    inventory_win = NULL;
+    delwin(debug_info_win);
+    debug_info_win = NULL;
+    needs_redraw = true;
 }
 
 void gameplay_input(CwTui *ctx)
@@ -86,48 +83,48 @@ void gameplay_input(CwTui *ctx)
     switch (ctx->ch) {
     case KEY_UP:
     case 'k':
-        gp_need_redraw = entity_move(player, map, 0, -1);
+        needs_redraw = entity_move(player, map, 0, -1);
         break;
     case KEY_DOWN:
     case 'j':
-        gp_need_redraw = entity_move(player, map, 0, 1);
+        needs_redraw = entity_move(player, map, 0, 1);
         break;
     case KEY_LEFT:
     case 'h':
-        gp_need_redraw = entity_move(player, map, -1, 0);
+        needs_redraw = entity_move(player, map, -1, 0);
         break;
     case KEY_RIGHT:
     case 'l':
-        gp_need_redraw = entity_move(player, map, 1, 0);
+        needs_redraw = entity_move(player, map, 1, 0);
         break;
         // TASK(20260226-155803): Add object related functions
     case 'K':
         cell_ref(map, player->y - 1, player->x)->object_id = 0;
-        gp_need_redraw = true;
+        needs_redraw = true;
         break;
     case 'J':
         cell_ref(map, player->y + 1, player->x)->object_id = 0;
-        gp_need_redraw = true;
+        needs_redraw = true;
         break;
     case 'H':
         cell_ref(map, player->y, player->x - 1)->object_id = 0;
-        gp_need_redraw = true;
+        needs_redraw = true;
         break;
     case 'L':
         cell_ref(map, player->y, player->x + 1)->object_id = 0;
-        gp_need_redraw = true;
+        needs_redraw = true;
         break;
     case '':
-        gp_need_redraw = entity_place_object(player, map, 10000, 0, -1);
+        needs_redraw = entity_place_object(player, map, 10000, 0, -1);
         break;
     case 10: // Vim not inputting ^J somehow
-        gp_need_redraw = entity_place_object(player, map, 10000, 0, 1);
+        needs_redraw = entity_place_object(player, map, 10000, 0, 1);
         break;
     case '':
-        gp_need_redraw = entity_place_object(player, map, 10000, -1, 0);
+        needs_redraw = entity_place_object(player, map, 10000, -1, 0);
         break;
     case '':
-        gp_need_redraw = entity_place_object(player, map, 10000, 1, 0);
+        needs_redraw = entity_place_object(player, map, 10000, 1, 0);
         break;
     case 'q':
         ctx->next_state = TUI_STATE_SAVES;
@@ -144,19 +141,19 @@ void gameplay_frame(CwTui *ctx)
     while (tick_accumulator >= tick_rate) {
         // game_tick should be called 20 times a sec
         if (world_tick(&ctx->core->current_world, tick_rate)) {
-            gp_need_redraw = true;
+            needs_redraw = true;
         }
         tick_accumulator -= tick_rate;
     }
 
-    if (!gp_need_redraw)
+    if (!needs_redraw)
         return;
 
     Map *map = ctx->core->current_world.map;
     Entity *player = ctx->core->current_world.player;
 
     int scr_w, scr_h;
-    getmaxyx(gp_win, scr_h, scr_w);
+    getmaxyx(win, scr_h, scr_w);
     int scr_w_cells = scr_w / 2;
 
     int draw_h = MIN((int)map->h, scr_h);
@@ -170,17 +167,17 @@ void gameplay_frame(CwTui *ctx)
     int screen_y1 = (scr_h - draw_h) / 2;
     int screen_x1 = (scr_w - (draw_w * 2)) / 2; // * 2 accounts for 2-char wide cells
 
-    werase(gp_win);
+    werase(win);
     attr_t current_attrs = A_NORMAL;
-    wattrset(gp_win, current_attrs);
+    wattrset(win, current_attrs);
 
     for (int y = 0; y < draw_h; ++y) {
-        wmove(gp_win, screen_y1 + y, screen_x1);
+        wmove(win, screen_y1 + y, screen_x1);
 
         for (int x = 0; x < draw_w; ++x) {
             Cell *cell = cell_ref(map, map_y1 + y, map_x1 + x);
 
-            const CellVisualDef *cell_def = &CELL_VISUAL_DB[cell->elevation];
+            const CellVisualDef *cell_def = &cell_visual_defs[cell->elevation];
             char symbol[2] = {cell_def->symbol, cell_def->symbol};
             short fg = cell_def->fg, bg = cell_def->bg;
             short cp = cell_def->cp;
@@ -216,48 +213,48 @@ void gameplay_frame(CwTui *ctx)
             attr_t new_attrs = COLOR_PAIR(cp) | attr;
 
             if (new_attrs != current_attrs) {
-                wattrset(gp_win, new_attrs);
+                wattrset(win, new_attrs);
                 current_attrs = new_attrs;
             }
 
-            waddch(gp_win, symbol[0]);
-            waddch(gp_win, symbol[1]);
+            waddch(win, symbol[0]);
+            waddch(win, symbol[1]);
         }
     }
 
-    wnoutrefresh(gp_win);
+    wnoutrefresh(win);
 
-    werase(gp_debug_info_win);
-    draw_win_frame(gp_debug_info_win, "de Buggin'", COLOR_RED);
-    mvwprintw(gp_debug_info_win, 1, 1, "x, y, z: %zu, %zu, %d", player->x, player->y,
+    werase(debug_info_win);
+    draw_win_frame(debug_info_win, "de Buggin'", COLOR_RED);
+    mvwprintw(debug_info_win, 1, 1, "x, y, z: %zu, %zu, %d", player->x, player->y,
               cell_ref(map, player->y, player->x)->elevation);
-    mvwprintw(gp_debug_info_win, 2, 1, "entities: %zu", ctx->core->current_world.entities.count);
-    wnoutrefresh(gp_debug_info_win);
+    mvwprintw(debug_info_win, 2, 1, "entities: %zu", ctx->core->current_world.entities.count);
+    wnoutrefresh(debug_info_win);
 
-    werase(gp_inventory_win);
-    draw_win_frame(gp_inventory_win, NULL, COLOR_CYAN);
+    werase(inventory_win);
+    draw_win_frame(inventory_win, NULL, COLOR_CYAN);
     int ith = 0;
     da_foreach(Item, item, &player->inventory) {
         short attr = COLOR_PAIR(fcp_get(item->def->fg, item->def->bg));
-        wattrset(gp_inventory_win, attr);
-        wmove(   gp_inventory_win, ++ith, 1);
-        waddch(  gp_inventory_win, item->def->symbol[0]);
-        waddch(  gp_inventory_win, item->def->symbol[1]);
-        wattrset(gp_inventory_win, A_NORMAL);
-        wprintw( gp_inventory_win, " %3d", item->stack ? item->stack : item->durability);
+        wattrset(inventory_win, attr);
+        wmove(   inventory_win, ++ith, 1);
+        waddch(  inventory_win, item->def->symbol[0]);
+        waddch(  inventory_win, item->def->symbol[1]);
+        wattrset(inventory_win, A_NORMAL);
+        wprintw( inventory_win, " %3d", item->stack ? item->stack : item->durability);
     }
-    wnoutrefresh(gp_inventory_win);
+    wnoutrefresh(inventory_win);
 
-    gp_need_redraw = false;
+    needs_redraw = false;
 }
 
 void gameplay_resize(CwTui *ctx)
 {
-    wresize(gp_win, LINES, COLS);
-    mvwin(gp_win, 0, 0);
-    wresize(gp_inventory_win, 11, 8);
-    mvwin(gp_inventory_win, 1, 2);
-    wresize(gp_debug_info_win, 4, 32);
-    mvwin(gp_debug_info_win, 1, COLS - 34);
-    gp_need_redraw = true;
+    wresize(win, LINES, COLS);
+    mvwin(win, 0, 0);
+    wresize(inventory_win, 11, 8);
+    mvwin(inventory_win, 1, 2);
+    wresize(debug_info_win, 4, 32);
+    mvwin(debug_info_win, 1, COLS - 34);
+    needs_redraw = true;
 }

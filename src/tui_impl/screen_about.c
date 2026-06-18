@@ -6,24 +6,24 @@
 #define ABOUT_HEIGHT 9
 #define ABOUT_WIDTH 60
 
-WINDOW *a_win;
+static WINDOW *win;
 
 void about_init(CwTui *ctx)
 {
     info("[tui] screen = about");
 
-    a_win = newwin(ABOUT_HEIGHT, ABOUT_WIDTH, (LINES - ABOUT_HEIGHT) / 2,
+    win = newwin(ABOUT_HEIGHT, ABOUT_WIDTH, (LINES - ABOUT_HEIGHT) / 2,
                    (COLS - ABOUT_WIDTH) / 2);
 
-    keypad(a_win, TRUE);
+    keypad(win, TRUE);
 }
 
 void about_deinit(CwTui *ctx)
 {
-    werase(a_win);
-    wnoutrefresh(a_win);
-    delwin(a_win);
-    a_win = NULL;
+    werase(win);
+    wnoutrefresh(win);
+    delwin(win);
+    win = NULL;
 }
 
 void about_input(CwTui *ctx)
@@ -34,16 +34,16 @@ void about_input(CwTui *ctx)
 
 void about_frame(CwTui *ctx)
 {
-    draw_win_frame(a_win, "About", COLOR_BLUE);
-    mvwprintw(a_win, 2, 4, "charwild v%d.%d.%d", CW_VERSION_MAJOR,
+    draw_win_frame(win, "About", COLOR_BLUE);
+    mvwprintw(win, 2, 4, "charwild v%d.%d.%d", CW_VERSION_MAJOR,
               CW_VERSION_MINOR, CW_VERSION_PATCH);
-    mvwprintw(a_win, 3, 4, "    developed by Lucas X. Zhao");
-    mvwprintw(a_win, 4, 4, "    licensed under Apache-2.0");
-    mvwprintw(a_win, 6, 4, "charwild is a survival sandbox game in TUI.");
-    wnoutrefresh(a_win);
+    mvwprintw(win, 3, 4, "    developed by Lucas X. Zhao");
+    mvwprintw(win, 4, 4, "    licensed under Apache-2.0");
+    mvwprintw(win, 6, 4, "charwild is a survival sandbox game in TUI.");
+    wnoutrefresh(win);
 }
 
 void about_resize(CwTui *ctx)
 {
-    mvwin(a_win, (LINES - ABOUT_HEIGHT) / 2, (COLS - ABOUT_WIDTH) / 2);
+    mvwin(win, (LINES - ABOUT_HEIGHT) / 2, (COLS - ABOUT_WIDTH) / 2);
 }

@@ -11,27 +11,27 @@
 #define PREVIEW_HEIGHT 24
 #define PREVIEW_WIDTH 56
 
-static ITEM **s_items = NULL;
-static MENU *s_menu = NULL;
-static WINDOW *s_win = NULL;
-static WINDOW *s_pre = NULL;
+static ITEM **items = NULL;
+static MENU *menu = NULL;
+static WINDOW *win = NULL;
+static WINDOW *preview_win = NULL;
 static SavePreview previews[3];
 
 void rebuild_saves_menu(CwTui *ctx)
 {
-    if (s_menu && s_items) { // Not first run
-        unpost_menu(s_menu);
-        free_menu(s_menu);
+    if (menu && items) { // Not first run
+        unpost_menu(menu);
+        free_menu(menu);
 
         for (int i = 0; i < 3; i++) {
-            free((void *)item_name(s_items[i]));
-            free_item(s_items[i]);
+            free((void *)item_name(items[i]));
+            free_item(items[i]);
         }
-        free(s_items);
-        s_items = NULL;
+        free(items);
+        items = NULL;
     }
 
-    s_items = (ITEM **)calloc(4, sizeof(ITEM *));
+    items = (ITEM **)calloc(4, sizeof(ITEM *));
 
     for (int i = 0; i < 3; i++) {
         char label[SAVES_WIDTH - 6];
@@ -41,20 +41,20 @@ void rebuild_saves_menu(CwTui *ctx)
                  previews[i].exists ? previews[i].header.player_name
                                     : "<Empty>");
 
-        s_items[i] = new_item(strdup(label), "");
+        items[i] = new_item(strdup(label), "");
     }
-    s_items[3] = NULL;
+    items[3] = NULL;
 
-    s_menu = new_menu(s_items);
-    set_menu_win(s_menu, s_win);
-    set_menu_sub(s_menu,
-                 derwin(s_win, SAVES_HEIGHT - 4, SAVES_WIDTH - 4, 2, 1));
-    set_menu_mark(s_menu, " > ");
-    set_menu_fore(s_menu,
+    menu = new_menu(items);
+    set_menu_win(menu, win);
+    set_menu_sub(menu,
+                 derwin(win, SAVES_HEIGHT - 4, SAVES_WIDTH - 4, 2, 1));
+    set_menu_mark(menu, " > ");
+    set_menu_fore(menu,
                   COLOR_PAIR(fcp_get(COLOR_BLUE, -1)) | A_BOLD | A_REVERSE);
-    set_current_item(s_menu, s_items[ctx->core->current_slot]);
+    set_current_item(menu, items[ctx->core->current_slot]);
 
-    post_menu(s_menu);
+    post_menu(menu);
 }
 
 void saves_init(CwTui *ctx)
@@ -66,32 +66,32 @@ void saves_init(CwTui *ctx)
     int start_x = (COLS - total_w) / 2;
     int start_y = (LINES - PREVIEW_HEIGHT) / 2;
 
-    s_win = newwin(SAVES_HEIGHT, SAVES_WIDTH, start_y, start_x);
-    s_pre = newwin(PREVIEW_HEIGHT, PREVIEW_WIDTH, start_y,
+    win = newwin(SAVES_HEIGHT, SAVES_WIDTH, start_y, start_x);
+    preview_win = newwin(PREVIEW_HEIGHT, PREVIEW_WIDTH, start_y,
                    start_x + SAVES_WIDTH + 1);
 
-    keypad(s_win, TRUE);
+    keypad(win, TRUE);
     rebuild_saves_menu(ctx);
 }
 
 void saves_deinit(CwTui *ctx)
 {
-    werase(s_win);
-    werase(s_pre);
-    wnoutrefresh(s_win);
-    wnoutrefresh(s_pre);
+    werase(win);
+    werase(preview_win);
+    wnoutrefresh(win);
+    wnoutrefresh(preview_win);
 
-    free_menu_ctx(s_win, s_menu, s_items, 3, true);
+    free_menu_ctx(win, menu, items, 3, true);
 
-    delwin(s_pre);
-    s_pre = NULL;
+    delwin(preview_win);
+    preview_win = NULL;
 }
 
 void saves_input(CwTui *ctx)
 {
-    int slot = item_index(current_item(s_menu));
+    int slot = item_index(current_item(menu));
 
-    ITEM *cur = current_item(s_menu);
+    ITEM *cur = current_item(menu);
     if (cur) {
         ctx->core->current_slot = item_index(cur);
     }
@@ -99,11 +99,11 @@ void saves_input(CwTui *ctx)
     switch (ctx->ch) {
     case KEY_DOWN:
     case 'j':
-        menu_driver(s_menu, REQ_DOWN_ITEM);
+        menu_driver(menu, REQ_DOWN_ITEM);
         break;
     case KEY_UP:
     case 'k':
-        menu_driver(s_menu, REQ_UP_ITEM);
+        menu_driver(menu, REQ_UP_ITEM);
         break;
     case 'q':
         ctx->next_state = TUI_STATE_MAIN_MENU;
@@ -140,9 +140,9 @@ void saves_input(CwTui *ctx)
 
         char new_name[32];
 
-        mvwprintw(s_pre, 2, 22, "%32s", "");
-        wmove(s_pre, 2, 22);
-        wgetnstr(s_pre, new_name, 31);
+        mvwprintw(preview_win, 2, 22, "%32s", "");
+        wmove(preview_win, 2, 22);
+        wgetnstr(preview_win, new_name, 31);
 
         noecho();
         curs_set(0);
@@ -169,32 +169,32 @@ void saves_input(CwTui *ctx)
 
 void saves_frame(CwTui *ctx)
 {
-    draw_win_frame(s_win, "Select Save", COLOR_BLUE);
-    wnoutrefresh(s_win);
+    draw_win_frame(win, "Select Save", COLOR_BLUE);
+    wnoutrefresh(win);
 
-    werase(s_pre);
-    draw_win_frame(s_pre, "Preview", COLOR_CYAN);
+    werase(preview_win);
+    draw_win_frame(preview_win, "Preview", COLOR_CYAN);
 
-    int idx = item_index(current_item(s_menu));
+    int idx = item_index(current_item(menu));
     if (previews[idx].exists) {
-        wattron(s_pre, COLOR_PAIR(1));
-        mvwprintw(s_pre, 2, 2, "%16s", "player");
-        wattroff(s_pre, COLOR_PAIR(1));
-        mvwprintw(s_pre, 2, 22, "%s", previews[idx].header.player_name);
+        wattron(preview_win, COLOR_PAIR(1));
+        mvwprintw(preview_win, 2, 2, "%16s", "player");
+        wattroff(preview_win, COLOR_PAIR(1));
+        mvwprintw(preview_win, 2, 22, "%s", previews[idx].header.player_name);
 
-        wattron(s_pre, A_DIM);
-        mvwhline(s_pre, 3, 22, ACS_HLINE, 31);
-        wattroff(s_pre, A_DIM);
+        wattron(preview_win, A_DIM);
+        mvwhline(preview_win, 3, 22, ACS_HLINE, 31);
+        wattroff(preview_win, A_DIM);
 
-        mvwprintw(s_pre, 4, 2, "%16s", "version");
-        mvwprintw(s_pre, 4, 22, "%d", previews[idx].header.version);
+        mvwprintw(preview_win, 4, 2, "%16s", "version");
+        mvwprintw(preview_win, 4, 22, "%d", previews[idx].header.version);
     } else {
-        wattron(s_pre, A_DIM);
-        mvwprintw(s_pre, 2, 4, "Empty Slot");
-        mvwprintw(s_pre, 3, 4, "No data available.");
-        wattroff(s_pre, A_DIM);
+        wattron(preview_win, A_DIM);
+        mvwprintw(preview_win, 2, 4, "Empty Slot");
+        mvwprintw(preview_win, 3, 4, "No data available.");
+        wattroff(preview_win, A_DIM);
     }
-    wnoutrefresh(s_pre);
+    wnoutrefresh(preview_win);
 }
 
 void saves_resize(CwTui *ctx)
@@ -203,8 +203,8 @@ void saves_resize(CwTui *ctx)
     int start_x = (COLS - total_w) / 2;
     int start_y = (LINES - PREVIEW_HEIGHT) / 2;
 
-    mvwin(s_win, start_y, start_x);
-    mvwin(s_pre, start_y, start_x + SAVES_WIDTH + 1);
+    mvwin(win, start_y, start_x);
+    mvwin(preview_win, start_y, start_x + SAVES_WIDTH + 1);
 
     rebuild_saves_menu(ctx);
 }
