@@ -6,6 +6,12 @@
 
 Logs logs = {0};
 
+static const char* log_labels[3] = {
+    "info",
+    "warn",
+    " err",
+};
+
 void log_add(LogLevel level, const char *fmt, ...)
 {
     char msg[LOG_MAX_LENGTH + 1];
@@ -20,6 +26,12 @@ void log_add(LogLevel level, const char *fmt, ...)
     log.msg = strdup(msg);
 
     da_append(&logs, log);
+}
+
+void log_print_all(FILE *stream)
+{
+    da_foreach(Log, it, &logs)
+        fprintf(stream, "%s: %s\n", log_labels[it->level], it->msg);
 }
 
 void log_free_all(void)

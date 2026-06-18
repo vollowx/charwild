@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
     log_deinit(&ctx);
     endwin();
 
+    log_print_all(stdout);
     log_free_all();
     da_free(core_ctx.item_defs);
     da_free(core_ctx.entity_defs);

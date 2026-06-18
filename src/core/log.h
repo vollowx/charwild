@@ -28,6 +28,7 @@ typedef struct {
 } Logs;
 
 void log_add(LogLevel level, const char *fmt, ...);
+void log_print_all(FILE *stream);
 void log_free_all(void);
 
 extern Logs logs;
