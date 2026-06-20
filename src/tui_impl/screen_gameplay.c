@@ -31,6 +31,7 @@ static WINDOW *win = NULL;
 static WINDOW *inventory_win = NULL;
 static WINDOW *debug_info_win = NULL;
 static bool needs_redraw = true;
+static int item_selected = 1; // [1, 9]
 
 void gameplay_init(CwTui *ctx)
 {
@@ -81,6 +82,17 @@ void gameplay_input(CwTui *ctx)
     // TASK(20260227-142821): Redesign player movement, consider add into
     // world_tick and add velocity
     switch (ctx->ch) {
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+        item_selected = ctx->ch - '0';
+        break;
     case KEY_UP:
     case 'k':
         needs_redraw = entity_move(player, map, 0, -1);
@@ -225,16 +237,18 @@ void gameplay_frame(CwTui *ctx)
     wnoutrefresh(win);
 
     werase(inventory_win);
+    wattrset(inventory_win, A_NORMAL);
     draw_win_frame(inventory_win, NULL, COLOR_CYAN);
-    int ith = 0;
+    int i = 1;
     da_foreach(Item, item, &player->inventory) {
         short attr = COLOR_PAIR(fcp_get(item->def->fg, item->def->bg));
         wattrset(inventory_win, attr);
-        wmove(   inventory_win, ++ith, 1);
+        wmove(   inventory_win, i, 1);
         waddch(  inventory_win, item->def->symbol[0]);
         waddch(  inventory_win, item->def->symbol[1]);
-        wattrset(inventory_win, A_NORMAL);
+        wattrset(inventory_win, i == item_selected ? A_STANDOUT : A_NORMAL);
         wprintw( inventory_win, " %3d", item->stack ? item->stack : item->durability);
+        i += 1;
     }
     wnoutrefresh(inventory_win);
 

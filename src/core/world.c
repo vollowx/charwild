@@ -16,6 +16,17 @@ Item *entity_inventory_lookup(Entity *e, uint16_t def_id)
     return NULL;
 }
 
+void entity_acquire_item(Entity *e, uint16_t def_id, int stack, Cw *ctx)
+{
+    assert(e);
+    Item item = {
+        .def = item_def_lookup(ctx->item_defs, def_id),
+        .stack = stack,
+        0,
+    };
+    da_append(&e->inventory, item);
+}
+
 bool entity_move(Entity *e, Map *m, int dx, int dy)
 {
     assert(e && m);
@@ -56,7 +67,7 @@ bool entity_move(Entity *e, Map *m, int dx, int dy)
 
 bool entity_place_object(Entity *e, Map *m, uint16_t def_id, int dx, int dy)
 {
-    assert(e && m && m->cells);
+    assert(e && m);
 
     int tx = (int)e->x + dx;
     int ty = (int)e->y + dy;
@@ -80,15 +91,26 @@ bool entity_place_object(Entity *e, Map *m, uint16_t def_id, int dx, int dy)
     return true;
 }
 
-void entity_acquire_item(Entity *e, uint16_t def_id, int stack, Cw *ctx)
-{
-    assert(e);
-    Item item = {
-        .def = item_def_lookup(ctx->item_defs, def_id),
-        .stack = stack,
-        0,
-    };
-    da_append(&e->inventory, item);
+// TODO: calculate damage by the current item holiding
+bool entity_damage(Entity *e, Map *m, int dx, int dy) {
+    assert(e && m);
+
+    size_t dest_x = e->x + dx, dest_y = e->y + dy;
+
+    if (dest_x >= m->w || dest_y >= m->h)
+        return false;
+
+    Cell *dest = cell_ref(m, dest_y, dest_x);
+
+    if (dest->entity) {
+        dest->entity->health -= 1;
+        return true;
+    } else if (dest->object_id) {
+        dest->object_health -= 1;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 Map *map_alloc(size_t height, size_t width)
@@ -238,7 +260,7 @@ Entity *world_link_entities_to_cells(World *w, size_t start)
     for (size_t i = start; i < w->entities.count; ++i) {
         Entity *entity = &w->entities.items[i];
         cell_ref(w->map, entity->y, entity->x)->entity = entity;
-        if (entity->def->type == ENTITY_PLAYER)
+        if (entity->def->kind == ENTITY_PLAYER)
             player = entity;
     }
     return player;
@@ -250,7 +272,7 @@ bool world_tick(World *w, double dt)
 
     // TODO: dedicated behavior functions for each kind of animal
     da_foreach(Entity, ent, &w->entities) {
-        if (ent->def->type != ENTITY_ANIMAL)
+        if (ent->def->kind != ENTITY_ANIMAL)
             continue;
 
         if ((rand() % 100) < 3) {

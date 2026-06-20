@@ -1,9 +1,21 @@
+#include <stdarg.h>
+#include <ncurses.h>
 #include <menu.h>
 #include "core/common.h"
 #include "core/log.h"
 #include "core/save.h"
 #include "tui/fcp.h"
 #include "tui/tui_context.h"
+
+void wprintwattr(WINDOW *window, attr_t attr, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    wattron(window, attr);
+    vw_printw(window, format, args);
+    wattroff(window, attr);
+    va_end(args);
+}
 
 // menu height = 3, padding = 1 * 2, border = 1 * 2
 #define SAVES_HEIGHT 7
@@ -109,7 +121,7 @@ void saves_input(CwTui *ctx)
         ctx->next_state = TUI_STATE_MAIN_MENU;
         break;
 
-    case 10:
+    case 10: // KEY_ENTER doesn't work here
     case 'o':
         if (previews[slot].exists) {
             ctx->next_state = TUI_STATE_GAMEPLAY;
@@ -127,8 +139,24 @@ void saves_input(CwTui *ctx)
     case 'x':
         if (!previews[slot].exists)
             break;
-        // next_state = STATE_SAVE_DELETE
-        save_delete(slot);
+
+        werase(        preview_win);
+        draw_win_frame(preview_win, "Confirm Deletion", COLOR_RED);
+        mvwprintw(     preview_win, 2, 2, "Deleting save at slot %d...", slot);
+        mvwprintw(     preview_win, 3, 2, "Are you serious? It ");
+        wprintwattr(   preview_win, COLOR_PAIR(fcp_get(COLOR_RED, -1)) | A_BOLD, "cannot");
+        wprintw(       preview_win, " be restored!");
+        mvwprintw(     preview_win, 5, 2, "Press ");
+        wprintwattr(   preview_win, COLOR_PAIR(fcp_get(COLOR_BLUE, -1)) | A_UNDERLINE, "<Y>");
+        wprintw(       preview_win, " to confirm, or ");
+        wprintwattr(   preview_win, COLOR_PAIR(fcp_get(COLOR_BLUE, -1)) | A_UNDERLINE, "<Any Other>");
+        wprintw(       preview_win, " to cancel.");
+        wrefresh(      preview_win);
+
+        int confirm = wgetch(preview_win);
+        if (confirm == 'y' || confirm == 'Y')
+            save_delete(slot);
+
         rebuild_saves_menu(ctx);
         break;
     case 'r':
@@ -151,13 +179,12 @@ void saves_input(CwTui *ctx)
             World world = {0};
             if (world_load(&world, slot, ctx->core) == SAVE_OK) {
                 strcpy(world.player->name, new_name);
-                if (world_save(&world, slot) == SAVE_OK) {
-                    info("[save] Renamed slot %d to %s", slot, new_name);
-                } else {
-                    error("[save] Failed to rename slot saving save");
-                }
+                if (world_save(&world, slot) == SAVE_OK)
+                    info("[save] renamed slot %d to %s", slot, new_name);
+                else
+                    error("[save] failed to rename slot saving save");
             } else {
-                error("[save] Failed to rename slot loading save");
+                error("[save] failed to rename slot loading save");
             }
             world_free(&world);
         }

@@ -6,12 +6,15 @@
 #include <stdint.h>
 #include <ncurses.h>
 
+// Definition arrays have a maximum size of `uint16_t`, that is limited by the
+// id of a definition.
+
 typedef enum {
     ITEM_RESOURCE,   // Ore, wood
     ITEM_PLACEABLE,  // Seeds, furniture
     ITEM_CONSUMABLE, // Food, potions
     ITEM_EQUIPMENT,  // Tools, armor
-} ItemType;
+} ItemKind;
 
 typedef enum {
     ENTITY_PLAYER,
@@ -19,11 +22,11 @@ typedef enum {
     ENTITY_ENEMY,
     ENTITY_ANIMAL,
     ENTITY_ITEM,
-} EntityType;
+} EntityKind;
 
 typedef struct {
     uint16_t id;
-    ItemType type;
+    ItemKind kind;
     char name[32];
     union {
         bool stackable;
@@ -37,7 +40,7 @@ typedef struct {
 
 typedef struct {
     uint16_t id;
-    EntityType type;
+    EntityKind kind;
     char name[32];
     int max_health;
     bool is_passable;

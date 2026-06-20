@@ -65,10 +65,10 @@ bool definitions_load(
                        fg_name, bg_name, name) != 6)
                 do_defer_and_return(false);
             if (def.stack_max == 0) def.stackable = false;
-            if      (sv_eq_cstr(line.tag, "resource"))   def.type = ITEM_RESOURCE;
-            else if (sv_eq_cstr(line.tag, "placeable"))  def.type = ITEM_PLACEABLE;
-            else if (sv_eq_cstr(line.tag, "consumable")) def.type = ITEM_CONSUMABLE;
-            else if (sv_eq_cstr(line.tag, "equipment"))  def.type = ITEM_EQUIPMENT;
+            if      (sv_eq_cstr(line.tag, "resource"))   def.kind = ITEM_RESOURCE;
+            else if (sv_eq_cstr(line.tag, "placeable"))  def.kind = ITEM_PLACEABLE;
+            else if (sv_eq_cstr(line.tag, "consumable")) def.kind = ITEM_CONSUMABLE;
+            else if (sv_eq_cstr(line.tag, "equipment"))  def.kind = ITEM_EQUIPMENT;
             else do_defer_and_return(false);
             def.fg = parse_color(fg_name);
             def.bg = parse_color(bg_name);
@@ -81,8 +81,8 @@ bool definitions_load(
                        &def.id, &def.max_health, passable, def.symbol,
                        fg_name, bg_name, name) != 7)
                 do_defer_and_return(false);
-            if      (sv_eq_cstr(line.tag, "player")) def.type = ENTITY_PLAYER;
-            else if (sv_eq_cstr(line.tag, "animal")) def.type = ENTITY_ANIMAL;
+            if      (sv_eq_cstr(line.tag, "player")) def.kind = ENTITY_PLAYER;
+            else if (sv_eq_cstr(line.tag, "animal")) def.kind = ENTITY_ANIMAL;
             else do_defer_and_return(false);
             if (!parse_bool(passable, &def.is_passable)) do_defer_and_return(false);
             def.fg = parse_color(fg_name);

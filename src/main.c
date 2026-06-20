@@ -55,7 +55,8 @@ int main(int argc, char *argv[])
     raw();
     noecho();
     keypad(stdscr, TRUE);
-    nodelay(stdscr, TRUE);
+    // nodelay(stdscr, TRUE);
+    timeout(1000 / core_ctx.options.fps);
     curs_set(0);
 
     if (!has_colors()) {
@@ -81,8 +82,6 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &last_frame);
 
     while (ctx.next_state != TUI_STATE_QUIT) {
-        ctx.frame_time = calculate_frame_time(&last_frame);
-
         if (ctx.next_state != ctx.current_state) {
             if (ctx.current_screen)
                 ctx.current_screen->deinit(&ctx);
@@ -94,6 +93,8 @@ int main(int argc, char *argv[])
         }
 
         ctx.ch = getch();
+        ctx.frame_time = calculate_frame_time(&last_frame);
+
         if (ctx.ch == KEY_RESIZE) {
             erase();
             ctx.current_screen->resize(&ctx);
@@ -107,7 +108,6 @@ int main(int argc, char *argv[])
         log_frame(&ctx);
 
         doupdate();
-        napms(1000 / core_ctx.options.fps);
     }
 
     ctx.current_screen->deinit(&ctx);

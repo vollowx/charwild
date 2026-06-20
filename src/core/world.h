@@ -76,10 +76,11 @@ typedef struct {
 
 // Returns `NULL` when not found.
 Item *entity_inventory_lookup(Entity *, uint16_t def_id);
+void entity_acquire_item(Entity *, uint16_t def_id, int stack, Cw *ctx);
 // `dy` for delta x, so as `dx`
 bool entity_move(Entity *, Map *, int dx, int dy);
 bool entity_place_object(Entity *, Map *, uint16_t def_id, int dx, int dy);
-void entity_acquire_item(Entity *, uint16_t def_id, int stack, Cw *ctx);
+bool entity_damage(Entity *, Map *, int dx, int dy);
 
 // Returns `NULL` when failing on allocations.
 Map *map_alloc(size_t height, size_t width);
