@@ -100,37 +100,4 @@ static inline bool cw_next_line(FILE *fp, char *buf, size_t bufsz, CwLine *out)
     return false;
 }
 
-#define draw_win_frame(win, title, color)                                      \
-    do {                                                                       \
-        wattron(win, COLOR_PAIR(fcp_get(color, -1)));                          \
-        box(win, 0, 0);                                                        \
-        wattron(win, A_BOLD);                                                  \
-        if (title != NULL)                                                     \
-            mvwprintw(win, 0, 3, " %s ", title);                               \
-        wattroff(win, COLOR_PAIR(fcp_get(color, -1)) | A_BOLD);                \
-    } while (0)
-
-#define free_menu_ctx(win, menu, items, n_items, owns_labels)                  \
-    do {                                                                       \
-        if (menu) {                                                            \
-            unpost_menu(menu);                                                 \
-            WINDOW *sub = menu_sub(menu);                                      \
-            if (sub)                                                           \
-                delwin(sub);                                                   \
-            free_menu(menu);                                                   \
-            menu = NULL;                                                       \
-        }                                                                      \
-        if (items) {                                                           \
-            for (int i = 0; i < n_items; i++) {                                \
-                if (owns_labels)                                               \
-                    free((void *)item_name(items[i]));                         \
-                free_item(items[i]);                                           \
-            }                                                                  \
-            free(items);                                                       \
-            items = NULL;                                                      \
-        }                                                                      \
-        delwin(win);                                                           \
-        win = NULL;                                                            \
-    } while (0)
-
 #endif

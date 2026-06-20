@@ -5,17 +5,8 @@
 #include "core/log.h"
 #include "core/save.h"
 #include "tui/fcp.h"
+#include "tui/tui_common.h"
 #include "tui/tui_context.h"
-
-void wprintwattr(WINDOW *window, attr_t attr, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    wattron(window, attr);
-    vw_printw(window, format, args);
-    wattroff(window, attr);
-    va_end(args);
-}
 
 // menu height = 3, padding = 1 * 2, border = 1 * 2
 #define SAVES_HEIGHT 7
@@ -109,11 +100,9 @@ void saves_input(CwTui *ctx)
     }
 
     switch (ctx->ch) {
-    case KEY_DOWN:
     case 'j':
         menu_driver(menu, REQ_DOWN_ITEM);
         break;
-    case KEY_UP:
     case 'k':
         menu_driver(menu, REQ_UP_ITEM);
         break;
@@ -122,12 +111,11 @@ void saves_input(CwTui *ctx)
         break;
 
     case 10: // KEY_ENTER doesn't work here
-    case 'o':
         if (previews[slot].exists) {
             ctx->next_state = TUI_STATE_GAMEPLAY;
         } else {
             World world = {0};
-            world_init(&world, ctx->core);
+            world_init(&world, 512, 512, ctx->core);
             world_save(&world, slot);
             world_free(&world);
 
@@ -142,11 +130,11 @@ void saves_input(CwTui *ctx)
 
         werase(        preview_win);
         draw_win_frame(preview_win, "Confirm Deletion", COLOR_RED);
-        mvwprintw(     preview_win, 2, 2, "Deleting save at slot %d...", slot);
-        mvwprintw(     preview_win, 3, 2, "Are you serious? It ");
+        mvwprintw(     preview_win, 2, 4, "Deleting save at slot %d...", slot);
+        mvwprintw(     preview_win, 3, 4, "Are you serious? It ");
         wprintwattr(   preview_win, COLOR_PAIR(fcp_get(COLOR_RED, -1)) | A_BOLD, "cannot");
         wprintw(       preview_win, " be restored!");
-        mvwprintw(     preview_win, 5, 2, "Press ");
+        mvwprintw(     preview_win, 5, 4, "Press ");
         wprintwattr(   preview_win, COLOR_PAIR(fcp_get(COLOR_BLUE, -1)) | A_UNDERLINE, "<Y>");
         wprintw(       preview_win, " to confirm, or ");
         wprintwattr(   preview_win, COLOR_PAIR(fcp_get(COLOR_BLUE, -1)) | A_UNDERLINE, "<Any Other>");
@@ -200,13 +188,14 @@ void saves_frame(CwTui *ctx)
     wnoutrefresh(win);
 
     werase(preview_win);
-    draw_win_frame(preview_win, "Preview", COLOR_CYAN);
 
     int idx = item_index(current_item(menu));
     if (previews[idx].exists) {
-        wattron(preview_win, COLOR_PAIR(1));
+        draw_win_frame(preview_win, "Preview", COLOR_GREEN);
+
+        wattron(preview_win, COLOR_PAIR(fcp_get(COLOR_BLUE, -1)));
         mvwprintw(preview_win, 2, 2, "%16s", "player");
-        wattroff(preview_win, COLOR_PAIR(1));
+        wattroff(preview_win, COLOR_PAIR(fcp_get(COLOR_BLUE, -1)));
         mvwprintw(preview_win, 2, 22, "%s", previews[idx].header.player_name);
 
         wattron(preview_win, A_DIM);
@@ -216,6 +205,8 @@ void saves_frame(CwTui *ctx)
         mvwprintw(preview_win, 4, 2, "%16s", "version");
         mvwprintw(preview_win, 4, 22, "%d", previews[idx].header.version);
     } else {
+        draw_win_frame(preview_win, "Empty Slot", COLOR_CYAN);
+
         wattron(preview_win, A_DIM);
         mvwprintw(preview_win, 2, 4, "Empty Slot");
         mvwprintw(preview_win, 3, 4, "No data available.");

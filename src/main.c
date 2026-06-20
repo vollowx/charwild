@@ -4,9 +4,11 @@
 #include "core/log.h"
 #include "core/definitions.h"
 #include "core/options.h"
+#include "tui/tui_common.h"
 #include "tui/tui_context.h"
 
 #ifdef CW_USE_ASAN
+// TODO: asserts are not handled
 void __asan_on_error(void)
 {
     if (!isendwin())
@@ -76,6 +78,7 @@ int main(int argc, char *argv[])
     );
     options_load(&ctx.core->options, CW_OPTIONS_PATH);
 
+    init_cell_color_pairs();
     log_init(&ctx);
 
     struct timespec last_frame;

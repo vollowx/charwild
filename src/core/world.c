@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <string.h>
 #include <time.h>
 #include <ncurses.h>
 #include <simplexnoise1234.h>
@@ -146,9 +147,10 @@ Cell *cell_ref(Map *map, uint64_t y, uint64_t x)
 }
 
 // TASK(20260223-173936): Chunk-ize game both in struct and file
-void world_init(World *w, Cw *ctx)
+void world_init(World *w, size_t height, size_t width, Cw *ctx)
 {
-    w->map = map_alloc(512, 512);
+    w->map = map_alloc(height, width);
+    memset(w->map->cells, 0, sizeof(Cell) * height * width);
 
     w->entities.items = NULL;
     w->entities.count = 0;
@@ -166,17 +168,16 @@ void world_init(World *w, Cw *ctx)
 
     da_append(&w->entities, player);
 
-    srand((unsigned int)time(NULL));
     w->seed = ((uint32_t)rand() << 16) | (uint32_t)rand();
 
-    size_t py = 256, px = 256, y_offset = 0;
-    world_gen_area(w, py - 256, px - 256, py + 256, px + 256, ctx);
+    size_t py = height / 2, px = width / 2, y_offset = 0;
+    world_gen_area(w, 0, 0, height, width, ctx);
 
     w->player = &w->entities.items[0];
 
     // TODO: Fails in a rather small possibility
     while (cell_ref(w->map, py + y_offset, px)->elevation != ELEV_GROUND &&
-           y_offset < 256) {
+           y_offset < height / 2) {
         ++y_offset;
     }
     py += y_offset;
@@ -209,7 +210,7 @@ void world_gen_area(World *w, size_t y1, size_t x1, size_t y2, size_t x2, Cw *ct
     for (size_t y = y1; y < y2 && y < w->map->h; y++) {
         for (size_t x = x1; x < x2 && x < w->map->w; x++) {
             Cell *cell = cell_ref(w->map, y, x);
-            if (cell->elevation != ELEV_NONE) continue;
+            // if (cell->elevation != ELEV_NONE) continue;
 
             float noise = snoise2((float)x * scale + seed_bias_x,
                                   (float)y * scale + seed_bias_y);

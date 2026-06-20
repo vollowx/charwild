@@ -3,6 +3,7 @@
 #include "core/log.h"
 #include "core/options.h"
 #include "tui/fcp.h"
+#include "tui/tui_common.h"
 #include "tui/tui_context.h"
 
 #define OPTIONS_HEIGHT 32
@@ -67,7 +68,7 @@ void rebuild_options_menu(CwTui *ctx)
 
     format_menu_item(log_level_line, sizeof(log_level_line), "Log level",
                      lvls[ctx->core->options.log_level]);
-    format_menu_item(save_log_line, sizeof(save_log_line), "Save logs locally",
+    format_menu_item(save_log_line, sizeof(save_log_line), "Save logs",
                      ctx->core->options.save_log ? "[x]" : "[ ]");
     format_menu_item(show_log_line, sizeof(show_log_line), "Show logs",
                      ctx->core->options.show_log ? "[x]" : "[ ]");

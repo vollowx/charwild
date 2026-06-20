@@ -1,6 +1,8 @@
+#include <ncurses.h>
 #include "core/common.h"
 #include "core/log.h"
 #include "tui/fcp.h"
+#include "tui/tui_common.h"
 #include "tui/tui_context.h"
 
 #define ABOUT_HEIGHT 9
