@@ -80,7 +80,7 @@ bool entity_place_object(Entity *e, Map *m, uint16_t def_id, int dx, int dy)
     return true;
 }
 
-void entity_aquire_item(Entity *e, uint16_t def_id, int stack, Cw *ctx)
+void entity_acquire_item(Entity *e, uint16_t def_id, int stack, Cw *ctx)
 {
     assert(e);
     Item item = {
