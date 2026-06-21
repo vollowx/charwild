@@ -87,7 +87,7 @@ bool entity_place_object(Entity *e, Map *m, uint16_t def_id, int dx, int dy)
         return false;
     target_cell->object_id = def_id;
     item->stack -= 1;
-    // TODO: bool entity_remove_item(Entity *e, uint16_t def_id, int n)
+    // TASK(20260226-155803): bool entity_remove_item(Entity *e, uint16_t def_id, int n)
 
     return true;
 }
@@ -175,7 +175,7 @@ void world_init(World *w, size_t height, size_t width, Cw *ctx)
 
     w->player = &w->entities.items[0];
 
-    // TODO: Fails in a rather small possibility
+    // TASK(20260621-112432): Refine ground lookup machenism
     while (cell_ref(w->map, py + y_offset, px)->elevation != ELEV_GROUND &&
            y_offset < height / 2) {
         ++y_offset;
@@ -271,7 +271,7 @@ bool world_tick(World *w, double dt)
 {
     bool updated = false;
 
-    // TODO: dedicated behavior functions for each kind of animal
+    // TASK(20260621-112530): Dedicated behavior functions for each kind of animal
     da_foreach(Entity, ent, &w->entities) {
         if (ent->def->kind != ENTITY_ANIMAL)
             continue;

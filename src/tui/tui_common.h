@@ -8,6 +8,7 @@
 #include "tui/tui_context.h"
 
 void wprintwattr(WINDOW *, attr_t, const char *, ...);
+void mvwprintwattr(WINDOW *, int, int, attr_t, const char *, ...);
 
 #define draw_win_frame(win, title, color)                                      \
     do {                                                                       \

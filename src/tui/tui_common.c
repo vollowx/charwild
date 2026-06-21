@@ -20,6 +20,17 @@ void wprintwattr(WINDOW *window, attr_t attr, const char *format, ...)
     va_end(args);
 }
 
+void mvwprintwattr(WINDOW *window, int y, int x, attr_t attr, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    wmove(window, y, x);
+    wattron(window, attr);
+    vw_printw(window, format, args);
+    wattroff(window, attr);
+    va_end(args);
+}
+
 static CellVisualDef cell_visual_defs[] = {
     [ELEV_NONE]       = { '?', COLOR_BLACK, COLOR_MAGENTA},
     [ELEV_DEEP_WATER] = { '~', COLOR_BLACK, COLOR_BLUE},

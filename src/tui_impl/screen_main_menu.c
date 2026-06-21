@@ -38,8 +38,7 @@ void main_menu_init(CwTui *ctx)
     win =
         newwin(MAIN_MENU_HEIGHT, MAIN_MENU_WIDTH,
                (LINES - MAIN_MENU_HEIGHT) / 2, (COLS - MAIN_MENU_WIDTH) / 2);
-    // TODO: o dear! The layout calculation is a garbage dump
-    // TODO: handle resizing
+    // TASK(20260621-112643): Re-think about window placement calculation and resizing handling
     map_win =
         newwin(7, 14,
                (LINES - MAIN_MENU_HEIGHT) / 2 + 1, (COLS - MAIN_MENU_WIDTH) / 2 + 16);

@@ -193,9 +193,7 @@ void saves_frame(CwTui *ctx)
     if (previews[idx].exists) {
         draw_win_frame(preview_win, "Preview", COLOR_GREEN);
 
-        wattron(preview_win, COLOR_PAIR(fcp_get(COLOR_BLUE, -1)));
-        mvwprintw(preview_win, 2, 2, "%16s", "player");
-        wattroff(preview_win, COLOR_PAIR(fcp_get(COLOR_BLUE, -1)));
+        mvwprintwattr(preview_win, 2, 2, COLOR_PAIR(fcp_get(COLOR_BLUE, -1)), "%16s", "player");
         mvwprintw(preview_win, 2, 22, "%s", previews[idx].header.player_name);
 
         wattron(preview_win, A_DIM);
@@ -206,11 +204,7 @@ void saves_frame(CwTui *ctx)
         mvwprintw(preview_win, 4, 22, "%d", previews[idx].header.version);
     } else {
         draw_win_frame(preview_win, "Empty Slot", COLOR_CYAN);
-
-        wattron(preview_win, A_DIM);
-        mvwprintw(preview_win, 2, 4, "Empty Slot");
-        mvwprintw(preview_win, 3, 4, "No data available.");
-        wattroff(preview_win, A_DIM);
+        mvwprintwattr(preview_win, 2, 4, A_DIM, "No preview available.");
     }
     wnoutrefresh(preview_win);
 }

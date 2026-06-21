@@ -3,7 +3,7 @@
 # - mingw-w64-ucrt-x86_64-gcc
 # - mingw-w64-ucrt-x86_64-ncurses
 #
-# TODO: the main Makefile is updated, and this should follow up
+# TASK(20260621-104919): the main Makefile is updated, and this should follow up
 
 CC=gcc
 # Consider use <ncurses/ncurses.h> or <curses.h> in code
