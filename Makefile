@@ -8,8 +8,8 @@ OBJ := $(patsubst %.c,build/%.o,$(SRC))
 CC       ?= gcc
 CFLAGS   := -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers -I$(SRC_DIR) -Ithirdparty
 DEPFLAGS := -MMD -MP
-LDFLAGS  :=
-LDLIBS   := -lncurses -lmenu
+LDFLAGS  := -Lthirdparty
+LDLIBS   := -lm -lncurses -lmenu -l:libwren.a
 
 .PHONY: all all-release clean bear
 

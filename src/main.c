@@ -1,11 +1,17 @@
 #include <time.h>
 #include <unistd.h>
+#include "wren.h"
 #include "core/common.h"
 #include "core/log.h"
 #include "core/definitions.h"
 #include "core/options.h"
 #include "tui/tui_common.h"
 #include "tui/tui_context.h"
+
+void writeFn(WrenVM* vm, const char* text)
+{
+    info("[wren] %s", text);
+}
 
 #ifdef CW_USE_ASAN
 // TODO: asserts are not handled
@@ -52,6 +58,14 @@ int main(int argc, char *argv[])
         .next_state = TUI_STATE_MAIN_MENU,
         .core = &core_ctx,
     };
+    WrenConfiguration config;
+    wrenInitConfiguration(&config);
+    config.writeFn = &writeFn;
+    WrenVM* vm = wrenNewVM(&config);
+    WrenInterpretResult result = wrenInterpret(
+        vm,
+        "my_module",
+        "System.print(\"I am running in a VM!\")");
 
     initscr();
     raw();
@@ -122,6 +136,7 @@ int main(int argc, char *argv[])
     da_free(core_ctx.item_defs);
     da_free(core_ctx.entity_defs);
     da_free(core_ctx.object_defs);
+    wrenFreeVM(vm);
 
     return 0;
 }

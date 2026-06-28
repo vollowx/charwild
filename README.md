@@ -5,6 +5,7 @@
 - `make`
 - `gcc`
 - `ncurses`
+- `wren` (already at `./thirdparty/`)
 
 ```sh
 make
